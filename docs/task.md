@@ -38,3 +38,56 @@ Wystarczą modele przez API i otwarte narzędzia do automatyzacji przeglądarki.
 - Wang i in., FP-Agent: Fingerprinting AI Browsing Agents, arXiv:2605.01247.
 - Known By Their Actions: Fingerprinting LLM Browser Agents via UI Traces, arXiv:2605.14786.
 - Whose Agent Are You? Multi-Layer Fingerprinting and Attribution of Autonomous Web Agents, arXiv:2606.20910.
+
+---
+
+# Zasady projektu badawczego (informacje ogólne kursu)
+
+**Streszczenie.** Każdy zespół otrzymuje jeden otwarty temat badawczy z zakresu bezpieczeństwa sztucznej inteligencji, samodzielnie go bada i przedstawia wyniki w raporcie o objętości najwyżej dwóch stron (LaTeX, dwukolumnowy szablon CVPR), uzupełnionym dodatkiem bez ograniczenia objętości. Podstawowym kryterium oceny jest jakość komunikacji wyników. Wyboru tematu dokonują Państwo w głosowaniu trwającym do środy 25 listopada 2026 r., godz. 24:00. Termin oddania raportu upływa 11 stycznia 2027 r. o godz. 16:00.
+
+## Cel projektu
+
+Projekt badawczy różni się od dotychczasowych zadań laboratoryjnych: nie ma w nim tablicy wyników ani metryki, którą należy zmaksymalizować. Celem jest przeprowadzenie niewielkiego, samodzielnego badania przy ograniczonym czasie i ograniczonych zasobach obliczeniowych oraz jasne przedstawienie jego wyników.
+
+Tematy mają charakter eksploracyjny i nie mają jednej poprawnej odpowiedzi. Wynik negatywny, czyli rzetelnie udokumentowane stwierdzenie, że badany efekt nie występuje, jest pełnoprawnym wynikiem projektu.
+
+## Kryterium sukcesu
+
+Czytelnik raportu powinien dowiedzieć się więcej i jaśniej, niż gdyby treść tematu wprowadził jako zapytanie do modelu językowego.
+
+## Kryteria oceny
+
+- **Jakość komunikacji.** Z raportu powinno jasno wynikać, co zostało zrobione i jakie płyną z tego wnioski. Każde twierdzenie powinno być poparte wynikiem liczbowym lub wykresem.
+- **Jakość i prostota wykresów.** Wymagane są opisane osie, jednostki oraz podpis wskazujący wniosek płynący z wykresu. Zob. wskazówki dotyczące prezentacji wyników.
+- **Poprawność i dobór eksperymentów.** Eksperymenty powinny odpowiadać na postawione pytanie, zawierać punkt odniesienia i próby kontrolne, a wnioski powinny z nich rzeczywiście wynikać.
+- **Rzetelność.** Wątpliwości co do wyników oraz ograniczenia przeprowadzonych eksperymentów należy wyraźnie wskazać w raporcie.
+- Przegląd literatury nie podlega ocenie.
+
+## Wymagania dotyczące raportu
+
+- **Część główna:** najwyżej dwie strony w dwukolumnowym szablonie CVPR (author kit), przygotowana w systemie LaTeX. Do pracy nad raportem polecamy Overleaf. Limit obejmuje wykresy i tabele; bibliografia nie wlicza się do limitu. Wszystkie najważniejsze informacje muszą znaleźć się w tej części.
+- **Tekst części głównej musi być napisany samodzielnie, bez użycia narzędzi sztucznej inteligencji.** Uznanie tekstu części głównej za wygenerowany przez AI skutkuje odjęciem punktów, aż do wyzerowania oceny za projekt. Zakaz dotyczy wyłącznie tekstu raportu, a nie kodu: korzystanie ze wsparcia AI przy pisaniu kodu jest wskazane.
+- **Dodatek bez ograniczenia objętości:** pełne tabele wyników, treść zapytań, przykłady odpowiedzi modeli, szczegóły treningu.
+- **Odnośnik do repozytorium Git** z kodem umożliwiającym odtworzenie wyników. Repozytorium musi zawierać plik README opisujący krok po kroku, jak odtworzyć wyniki przedstawione w raporcie.
+
+Układ części głównej pozostawiamy Państwa decyzji. Jako sugestię proponujemy następujący:
+
+1. Najważniejszy wykres u góry pierwszej strony, z podpisem formułującym wniosek.
+2. Główne wyniki: od dwóch do czterech punktów; każdy rozpoczyna się wyróżnionym twierdzeniem i zawiera wyniki liczbowe.
+3. Zwięzły opis badania: przedmiot badania (model, dane, miara) oraz wyniki kolejnych kroków, z odesłaniami do dodatku.
+4. Ograniczenia i dalsze kierunki: co należałoby zrobić, dysponując większą ilością czasu.
+
+## Zasady realizacji
+
+- Opis każdego tematu zawiera kolejne kroki. Najważniejsze jest uzyskanie pierwszego własnego wyniku (zazwyczaj kroki 1 i 2). Dalsze kroki wskazują możliwe kierunki pracy; nie stanowią listy obowiązkowej i nie muszą być realizowane po kolei.
+- W pracy badawczej (eksperymenty, kod, analiza) dopuszcza się korzystanie z modeli językowych, cudzych repozytoriów i dowolnych materiałów, pod warunkiem wskazania w raporcie ich źródeł. Nie dotyczy to redagowania części głównej raportu, którą należy napisać samodzielnie.
+- Tematy dobrano tak, aby ich realizacja była możliwa z użyciem bezpłatnej wersji Google Colab oraz modeli dostępnych przez API. Dostęp do API zapewniają prowadzący; szczegóły zostaną podane po przydziale tematów. Jeżeli model wskazany w opisie tematu przekracza dostępne zasoby, dopuszcza się użycie mniejszego wariantu.
+- W tematach dotyczących ataków typu jailbreak oraz backdoorów stosuje się standardowe zbiory testowe i własne, kontrolowane modele. W raporcie i repozytorium nie zamieszcza się szkodliwych treści wygenerowanych przez modele, a jedynie wyniki zbiorcze.
+
+## Harmonogram
+
+| Termin | Etap |
+|---|---|
+| do środy 25.11.2026, godz. 24:00 | wybór tematu (głosowanie) |
+| bezpośrednio po zamknięciu głosowania | ogłoszenie przydziału tematów |
+| do 11.01.2027, godz. 16:00 | oddanie raportu (PDF) wraz z odnośnikiem do repozytorium; sposób przekazania zostanie podany odrębnie |

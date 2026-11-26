@@ -19,3 +19,4 @@
   - The task runs in a Jupyter kernel with an asyncio loop. Thus the Playwright sync API must run in a separate thread.
   - In the task session, `MODEL_PROXY_URL` already ends with `/openapi`.
   - The session runs Python 3.12. `navigator.webdriver` is `true` in headless Chromium from Playwright.
+- Added the general rules of the course project to `docs/task.md` and `docs/task_eng.md`: report format, grading criteria, the deadline (11 January 2027, 16:00).
