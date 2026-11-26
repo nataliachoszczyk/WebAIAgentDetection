@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# Data stays in a private Kaggle dataset, not in git.
+# Human traces can identify a person, and the repository is public.
+data/*
+!data/.gitkeep
+traces/
+*.zip
+*.parquet
+*.pt
+*.pth
+
+# Secrets: Kaggle tokens and LLM API keys
+.env
+.env.*
+kaggle.json
+.kaggle/
+
+# Local tools: the instructions for the assistant do not go into the repository
+CLAUDE.md
+CLAUDE.local.md
+.claude/
+.vscode/
+.idea/
+
+# Browser automation outputs
+playwright-report/
+test-results/
+*.har
+*.webm
+*.trace.zip
+
+# OS files
+*:Zone.Identifier
+.DS_Store
+Thumbs.db
+
+# Kaggle outputs: only small results go into git.
+# Screenshots and videos can show human sessions, and the repository is public.
+jobs/runs/*/output/**/*.npy
+jobs/runs/*/output/**/*.npz
+jobs/runs/*/output/**/*.png
+jobs/runs/*/output/**/*.jpg
+jobs/runs/*/output/**/*.log
+jobs/runs/*/output/**/*.jsonl
