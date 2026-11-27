@@ -8,7 +8,7 @@ Decision: one small Python server serves the page and keeps the logs. All sessio
 
 - The server uses only the Python standard library. It runs on a laptop, in a Kaggle session or on any small machine without changes.
 - The server writes the logs as JSON Lines files into a local folder (default `data/shop/`). Git does not keep this folder.
-- For the collection of traces, a team member runs the server and makes it public with a Cloudflare quick tunnel (`cloudflared tunnel --url http://localhost:8000`). The tunnel is free, needs no account and gives an HTTPS address.
+- For the collection of traces, a team member runs the server and makes it public with a Cloudflare quick tunnel. Both run in Docker containers (see below). The tunnel is free, needs no account and gives an HTTPS address.
 - People and agents get the same public HTTPS address. Thus a detector cannot use the address, the protocol or the network path as a signal.
 - For tests and development, use `http://localhost:8000`.
 - Each session starts from a link with a session code: `/s/<code>`. The server keeps the list of the codes and the label of each code. It records events only for a valid code. Thus strangers cannot fill the logs with noise.
@@ -27,14 +27,30 @@ Limits:
 - The laptop must run during the collection of traces. After the collection, upload the logs to the private Kaggle dataset.
 - While the tunnel runs, each person with the address can open the shop. Without a session link, the server records nothing.
 
+Run the public shop only during a collection of traces. Stop it after each collection. A stopped shop gives an attacker nothing to attack.
+
+The public shop runs in two Docker containers (`Dockerfile`, `compose.yaml`). Thus a fault in the server cannot reach the files of the laptop:
+
+- The shop image is distroless. It has Python and the shop code, but no shell, no package manager and no other tools.
+- `.dockerignore` lets only `src/shop` into the build. The keys in `.env` and the git history stay out.
+- The server runs as the user `nobody` (UID 65534) with no Linux capabilities. Root owns the code.
+- The file system of the container is read-only. The server can write only into the log volume.
+- The shop is on an internal Docker network without a route to the internet. It publishes no port on the laptop.
+- Only the tunnel container connects to Cloudflare. It also runs read-only and without capabilities.
+- Limits of memory, CPU and processes stop a flood of requests in the container.
+- The containers do not start again after a restart of the laptop or of Docker.
+
 To make the shop public, do these steps:
 
-1. Install `cloudflared` from the [official releases](https://github.com/cloudflare/cloudflared/releases). Compare its SHA-256 hash with the release notes.
-2. Start the server: `.venv/bin/python -m src.shop serve --port 8000`
-3. Start the tunnel: `cloudflared tunnel --no-autoupdate --url http://localhost:8000`
-4. Copy the `https://<name>.trycloudflare.com` address from the output of the tunnel.
-5. Make the session links: `.venv/bin/python -m src.shop new-session --label human --base-url https://<name>.trycloudflare.com`
-6. After the collection, stop the tunnel and the server.
+1. Start the containers: `docker compose up -d --build`
+2. Find the public address: `docker compose logs tunnel | grep trycloudflare.com`
+3. Make the session links: `docker compose exec shop /usr/bin/python3 -m src.shop new-session --label human --base-url https://<name>.trycloudflare.com`
+4. After the collection, copy the logs to the laptop: `docker compose cp shop:/app/data/shop/. data/shop/`
+5. Stop the containers: `docker compose down`
+
+Do not use `docker compose down -v` before you copy the logs. The option `-v` deletes the log volume.
+
+For tests and development without Docker, start the server with `.venv/bin/python -m src.shop serve --port 8000`. This server is only on localhost.
 
 Check of the tunnel (2026-11-27, `cloudflared` 2026.11.2):
 
@@ -42,6 +58,8 @@ Check of the tunnel (2026-11-27, `cloudflared` 2026.11.2):
 - The logs had all event types: pointer, keys, captcha, traps, canary, orders and the contact message.
 - The tunnel did not change the User-Agent of the browser.
 - A request for `/index.html` took about 0.2 s through the tunnel and about 2 ms on localhost. The delay is the same for people and agents.
+- The same four tests passed through the tunnel to the Docker containers.
+- In the shop container, connections to the internet failed, `/bin/sh` did not exist and the host files were not visible.
 - The server did not answer HEAD requests (status 501). A real web server answers them, so the server now answers HEAD like GET without the body.
 
 ## The shop (wad-003)

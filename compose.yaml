@@ -1,0 +1,41 @@
+# The test shop and the public tunnel, each in a locked container. See "Hosting" in docs/test_page.md.
+# The shop has no published port and no access to the internet. Only the tunnel connects to Cloudflare.
+
+x-locked: &locked
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+  restart: "no"
+
+services:
+  shop:
+    <<: *locked
+    build: .
+    image: wad-shop
+    volumes:
+      - shop-data:/app/data/shop
+    networks: [inside]
+    # The server stops on SIGINT. Python ignores SIGTERM as the first process of a container.
+    stop_signal: SIGINT
+    mem_limit: 256m
+    cpus: 1.0
+    pids_limit: 128
+
+  tunnel:
+    <<: *locked
+    image: cloudflare/cloudflared:2026.11.2
+    command: tunnel --no-autoupdate --url http://shop:8000
+    depends_on: [shop]
+    networks: [inside, outside]
+    mem_limit: 256m
+    cpus: 1.0
+    pids_limit: 128
+
+networks:
+  # An internal network has no route to the internet.
+  inside:
+    internal: true
+  outside: {}
+
+volumes:
+  shop-data:
