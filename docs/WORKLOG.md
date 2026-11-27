@@ -32,3 +32,8 @@
   - The logger records the length of a text and the type of a key, not the text.
   - JSON Lines: `sessions.jsonl` holds the label of each session, `events/<session>.jsonl` holds the events.
   - Added `src/shop/logger/schema.py` (the fields of each event type), `src/shop/store.py` (write and load the logs) and tests.
+- Made the test shop "Pace & Sole" (wad-003, #23). See `docs/test_page.md`:
+  - 12 shoe models, search, filters, sort, product pages, cart, checkout, order confirmation, contact form.
+  - Four tasks in `src/shop/tasks.json`. Task 2 needs a comparison: the cheapest waterproof boot has no size 42.
+  - The server (`src/shop/server.py`) uses only the Python standard library. It records the orders and the contact messages for valid sessions only.
+  - Tests: unit tests of the server and one test in Chromium that does all four tasks.

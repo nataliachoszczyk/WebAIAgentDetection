@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 340" role="img"><title>Metro Court, White</title>
+<ellipse cx="244" cy="300" rx="196" ry="13" fill="#000" opacity="0.10"/>
+<path d="M54 248 L54 272 Q54 286 72 286 L402 286 Q430 286 430 262 L430 248 Z" fill="#ffffff"/>
+<path d="M54 262 L430 262" stroke="#e0e0e0" stroke-width="3"/>
+<path d="M62 252 C58 214 68 182 96 170 L172 150 C188 128 208 116 230 116 C250 116 264 128 272 146 C312 162 372 182 406 204 C426 216 430 236 428 252 Z" fill="#f4f2ee"/>
+<path d="M356 186 C394 200 426 222 428 252 L352 252 C346 228 348 206 356 186 Z" fill="#e4ded2"/>
+<path d="M62 252 C58 220 64 196 80 182 L118 186 C114 210 114 236 118 252 Z" fill="#2d5b4a"/>
+<path d="M150 230 C200 206 250 186 320 176" stroke="#2d5b4a" stroke-width="6" fill="none" stroke-linecap="round" opacity="0.9"/>
+<g fill="#9e9d9a"><circle cx="196" cy="144" r="4.5"/><circle cx="214" cy="152" r="4.5"/><circle cx="232" cy="160" r="4.5"/><circle cx="250" cy="168" r="4.5"/><circle cx="268" cy="176" r="4.5"/></g>
+<g stroke="#faf9f8" stroke-width="4" stroke-linecap="round"><path d="M196 144 L214 136"/><path d="M214 152 L232 144"/><path d="M232 160 L250 152"/><path d="M250 168 L268 160"/></g>
+</svg>

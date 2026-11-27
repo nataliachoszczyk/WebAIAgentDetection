@@ -1,0 +1,236 @@
+[
+  {
+    "id": "ridge-runner",
+    "name": "Ridge Runner",
+    "category": "running",
+    "shape": "runner",
+    "price": 129,
+    "rating": 4.6,
+    "reviews": 214,
+    "waterproof": false,
+    "badge": "Bestseller",
+    "sizes": [39, 40, 41, 42, 43, 44, 45, 46],
+    "sold_out": [39],
+    "colors": [
+      {"name": "Moss", "upper": "#5f7a4f", "accent": "#e4d36b", "sole": "#efe9dc"},
+      {"name": "Slate", "upper": "#4a5563", "accent": "#f08a4b", "sole": "#e8e8e4"},
+      {"name": "Ember", "upper": "#b8462f", "accent": "#2b2b2b", "sole": "#f3ede4"}
+    ],
+    "short": "Trail running shoe with a grippy outsole.",
+    "description": "The Ridge Runner keeps its grip on wet roots and loose gravel. A rock plate protects the foot, and the soft foam stays light over long distances.",
+    "features": ["4 mm lugs for loose ground", "Rock plate in the forefoot", "Drop 6 mm", "Weight 290 g (size 42)"]
+  },
+  {
+    "id": "tempo-glide",
+    "name": "Tempo Glide",
+    "category": "running",
+    "shape": "runner",
+    "price": 109,
+    "rating": 4.4,
+    "reviews": 167,
+    "waterproof": false,
+    "sizes": [38, 39, 40, 41, 42, 43, 44, 45],
+    "sold_out": [],
+    "colors": [
+      {"name": "Cloud", "upper": "#dfe3e8", "accent": "#3d6fd6", "sole": "#ffffff"},
+      {"name": "Night", "upper": "#22252b", "accent": "#d7f05a", "sole": "#3a3d44"}
+    ],
+    "short": "Light road shoe for daily runs.",
+    "description": "A light and flexible shoe for daily training on the road. The knit upper breathes well on warm days.",
+    "features": ["Knit upper", "Drop 8 mm", "Weight 240 g (size 42)"]
+  },
+  {
+    "id": "volt-racer",
+    "name": "Volt Racer",
+    "category": "running",
+    "shape": "runner",
+    "price": 159,
+    "rating": 4.7,
+    "reviews": 98,
+    "waterproof": false,
+    "badge": "New",
+    "sizes": [39, 40, 41, 42, 43, 44, 45, 46],
+    "sold_out": [46],
+    "colors": [
+      {"name": "Volt", "upper": "#d9f24e", "accent": "#1f1f1f", "sole": "#f6f6f2"},
+      {"name": "Coral", "upper": "#f07a63", "accent": "#26324a", "sole": "#fbf4ee"}
+    ],
+    "short": "Race day shoe with a carbon plate.",
+    "description": "A fast shoe for races from 5 km to the marathon. The carbon plate and the high foam give a strong push at each step.",
+    "features": ["Carbon plate", "Drop 8 mm", "Weight 205 g (size 42)"]
+  },
+  {
+    "id": "trailhead-low",
+    "name": "Trailhead Low",
+    "category": "hiking",
+    "shape": "runner",
+    "price": 99,
+    "rating": 4.2,
+    "reviews": 121,
+    "waterproof": false,
+    "sizes": [38, 39, 40, 41, 42, 43, 44, 45, 46],
+    "sold_out": [],
+    "colors": [
+      {"name": "Sand", "upper": "#c9b48f", "accent": "#5a4632", "sole": "#4a4440"},
+      {"name": "Olive", "upper": "#6b6a45", "accent": "#d98c3f", "sole": "#3f3b37"}
+    ],
+    "short": "Low hiking shoe for dry trails.",
+    "description": "A low and breathable shoe for easy hikes in dry weather. The mesh upper dries fast, but it is not waterproof.",
+    "features": ["Mesh upper", "Not waterproof", "Weight 380 g (size 42)"]
+  },
+  {
+    "id": "pinecrest-mid",
+    "name": "Pinecrest Mid WP",
+    "category": "hiking",
+    "shape": "boot",
+    "price": 119,
+    "rating": 4.3,
+    "reviews": 189,
+    "waterproof": true,
+    "badge": "Sale",
+    "old_price": 139,
+    "sizes": [38, 39, 40, 41, 42, 43, 44, 45],
+    "sold_out": [42, 43],
+    "colors": [
+      {"name": "Brown", "upper": "#7a5236", "accent": "#d8a65a", "sole": "#3b3430"},
+      {"name": "Grey", "upper": "#7c8187", "accent": "#c4452f", "sole": "#33363a"}
+    ],
+    "short": "Waterproof mid boot for day hikes.",
+    "description": "A waterproof mid boot with a membrane that keeps the feet dry in rain and shallow streams.",
+    "features": ["Waterproof membrane", "Mid cut", "Weight 520 g (size 42)"]
+  },
+  {
+    "id": "alder-trek",
+    "name": "Alder Trek WP",
+    "category": "hiking",
+    "shape": "boot",
+    "price": 139,
+    "rating": 4.5,
+    "reviews": 143,
+    "waterproof": true,
+    "sizes": [38, 39, 40, 41, 42, 43, 44, 45, 46],
+    "sold_out": [38],
+    "colors": [
+      {"name": "Forest", "upper": "#3f5a45", "accent": "#e0b24f", "sole": "#2f2b28"},
+      {"name": "Tan", "upper": "#b08b5f", "accent": "#41503f", "sole": "#3a332d"}
+    ],
+    "short": "Waterproof trekking boot with ankle support.",
+    "description": "A waterproof boot for long treks with a pack. The high collar supports the ankle, and the deep rubber lugs grip on rock.",
+    "features": ["Waterproof membrane", "High collar", "Weight 610 g (size 42)"]
+  },
+  {
+    "id": "summit-pro",
+    "name": "Summit Pro GTX",
+    "category": "hiking",
+    "shape": "boot",
+    "price": 189,
+    "rating": 4.8,
+    "reviews": 76,
+    "waterproof": true,
+    "sizes": [39, 40, 41, 42, 43, 44, 45, 46],
+    "sold_out": [],
+    "colors": [
+      {"name": "Graphite", "upper": "#3b3f46", "accent": "#e5602f", "sole": "#232323"},
+      {"name": "Glacier", "upper": "#8fa7b8", "accent": "#26323d", "sole": "#2a2a2a"}
+    ],
+    "short": "Premium waterproof boot for mountains.",
+    "description": "Our best boot for rough mountain trails. A leather upper and a waterproof membrane keep the feet dry all day.",
+    "features": ["Leather upper", "Waterproof membrane", "Weight 690 g (size 42)"]
+  },
+  {
+    "id": "harbor-canvas",
+    "name": "Harbor Canvas",
+    "category": "casual",
+    "shape": "court",
+    "price": 59,
+    "rating": 4.3,
+    "reviews": 302,
+    "waterproof": false,
+    "sizes": [36, 37, 38, 39, 40, 41, 42, 43, 44, 45],
+    "sold_out": [36],
+    "colors": [
+      {"name": "Navy", "upper": "#2c3e66", "accent": "#ffffff", "sole": "#f5f1e8"},
+      {"name": "Off-white", "upper": "#ece6d8", "accent": "#b8462f", "sole": "#ffffff"},
+      {"name": "Red", "upper": "#b3352c", "accent": "#ffffff", "sole": "#f5f1e8"}
+    ],
+    "short": "Classic canvas sneaker.",
+    "description": "A simple canvas sneaker for every day. The rubber sole and the cotton upper are easy to clean.",
+    "features": ["Cotton canvas", "Rubber sole", "Weight 330 g (size 42)"]
+  },
+  {
+    "id": "metro-court",
+    "name": "Metro Court",
+    "category": "casual",
+    "shape": "court",
+    "price": 89,
+    "rating": 4.5,
+    "reviews": 188,
+    "waterproof": false,
+    "sizes": [37, 38, 39, 40, 41, 42, 43, 44, 45, 46],
+    "sold_out": [],
+    "colors": [
+      {"name": "White", "upper": "#f4f2ee", "accent": "#2d5b4a", "sole": "#ffffff"},
+      {"name": "Black", "upper": "#232323", "accent": "#b9975b", "sole": "#f0ede6"}
+    ],
+    "short": "Leather court sneaker.",
+    "description": "A clean leather sneaker that goes with jeans and with a suit. The cushioned insole is comfortable for a full day.",
+    "features": ["Full grain leather", "Cushioned insole", "Weight 410 g (size 42)"]
+  },
+  {
+    "id": "drift-slip-on",
+    "name": "Drift Slip-On",
+    "category": "casual",
+    "shape": "slipon",
+    "price": 69,
+    "rating": 4.1,
+    "reviews": 95,
+    "waterproof": false,
+    "sizes": [37, 38, 39, 40, 41, 42, 43, 44, 45],
+    "sold_out": [44],
+    "colors": [
+      {"name": "Sand", "upper": "#d8c3a0", "accent": "#7a5a3a", "sole": "#f3ede2"},
+      {"name": "Charcoal", "upper": "#43464b", "accent": "#9aa0a6", "sole": "#ecebe7"}
+    ],
+    "short": "Easy slip-on for summer.",
+    "description": "A light slip-on with elastic side panels. Put it on in one second, and walk all day in the city.",
+    "features": ["Elastic side panels", "Recycled cotton", "Weight 280 g (size 42)"]
+  },
+  {
+    "id": "oxford-classic",
+    "name": "Oxford Classic",
+    "category": "formal",
+    "shape": "oxford",
+    "price": 159,
+    "rating": 4.6,
+    "reviews": 64,
+    "waterproof": false,
+    "sizes": [39, 40, 41, 42, 43, 44, 45, 46],
+    "sold_out": [],
+    "colors": [
+      {"name": "Cognac", "upper": "#8a4b26", "accent": "#5c2f15", "sole": "#2b1d16"},
+      {"name": "Black", "upper": "#1f1f22", "accent": "#0f0f10", "sole": "#151515"}
+    ],
+    "short": "Leather Oxford for the office.",
+    "description": "A hand-finished leather Oxford with a leather sole. A classic shoe for the office and for weddings.",
+    "features": ["Calf leather", "Leather sole", "Weight 450 g (size 42)"]
+  },
+  {
+    "id": "chelsea-boot",
+    "name": "Camden Chelsea",
+    "category": "formal",
+    "shape": "chelsea",
+    "price": 169,
+    "rating": 4.4,
+    "reviews": 112,
+    "waterproof": false,
+    "sizes": [38, 39, 40, 41, 42, 43, 44, 45],
+    "sold_out": [41],
+    "colors": [
+      {"name": "Chocolate", "upper": "#5a3a28", "accent": "#2a2a2a", "sole": "#231a15"},
+      {"name": "Taupe", "upper": "#8d7b6a", "accent": "#3b3b3b", "sole": "#2a2420"}
+    ],
+    "short": "Suede Chelsea boot.",
+    "description": "A suede Chelsea boot with elastic side panels. The suede has a water-repellent finish, but the boot is not waterproof.",
+    "features": ["Suede upper", "Water-repellent finish", "Not waterproof", "Weight 560 g (size 42)"]
+  }
+]

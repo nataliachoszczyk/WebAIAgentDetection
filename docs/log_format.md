@@ -10,7 +10,7 @@ Real sites record similar events. We use the same set, so that our detectors use
 |---|---|---|
 | Web analytics | Google Analytics 4, Matomo | page views, scroll depth, clicks on links, form start and form submit, shop events (view item, add to cart, begin checkout, purchase) |
 | Session replay | Microsoft Clarity, Hotjar | mouse movement, clicks, scroll, window size, focus of the tab, input without the text |
-| Bot protection | reCAPTCHA v3, hCaptcha, Cloudflare Turnstile, DataDome | mouse and touch movement, key timing, the `isTrusted` flag of events, the browser fingerprint (user agent, `navigator.webdriver`, languages, screen, time zone, WebGL renderer) |
+| Bot protection | reCAPTCHA v3, hCaptcha, Cloudflare Turnstile, DataDome | mouse and touch movement, the time of each key press, the `isTrusted` flag of events, the browser fingerprint (user agent, `navigator.webdriver`, languages, screen, time zone, WebGL renderer) |
 
 The logger does not record the text that a person types into a text field. It records only the length of the text and the type of the key (letter, digit, Backspace and so on). It records the value of a select field, a check box or a radio button. The shop events record the data of the order, because the tasks give this data.
 
@@ -58,7 +58,7 @@ Events from the browser:
 | Type | Fields | When |
 |---|---|---|
 | `page_view` | `title`, `referrer`, `time_origin` | The page loads. |
-| `env` | `env` (object) | The page loads. The browser fingerprint: user agent, `webdriver`, languages, platform, screen, window, device pixel ratio, time zone, number of CPU cores, memory, touch points, number of plugins, WebGL vendor and renderer. |
+| `env` | `env` (object) | The page loads. `env` holds the browser fingerprint (see below). |
 | `pointer_move` | `x`, `y`, `ptype` | The mouse moves. At most one event in 50 ms. |
 | `pointer_down`, `pointer_up` | `x`, `y`, `button`, `ptype`, `target`, `trusted` | A mouse button goes down or up. |
 | `click` | `x`, `y`, `button`, `target`, `text`, `href`, `trusted` | A click. `text` is the first 60 characters of the text of the element. |
@@ -78,6 +78,8 @@ Events from the browser:
 | `trap` | `trap`, `action`, `target` | The user touches a trap (see `docs/test_page.md`). `action` is `focus`, `input`, `click`, `value` or `follow`. |
 | `captcha` | `captcha`, `ok`, `ms`, `len`, `keys`, `pasted` | The user completes a reverse CAPTCHA. `ms` is the time from the first view, `keys` is the number of key presses. |
 | `shop` | `action`, `product`, `size`, `color`, `qty`, `value` | A shop action: `view_item`, `add_to_cart`, `remove_from_cart`, `search`, `filter`, `sort`, `begin_checkout`, `apply_code`. |
+
+The `env` object has these fields: `ua`, `webdriver`, `languages`, `platform`, `screen`, `window`, `dpr`, `tz`, `cores`, `memory`, `touch`, `plugins`, `webgl_vendor`, `webgl_renderer`, `chrome`.
 
 Events from the server:
 
