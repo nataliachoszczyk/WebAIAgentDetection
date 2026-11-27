@@ -126,7 +126,7 @@ def test_events_from_a_script_are_not_trusted(shop, browser):
 
 def test_copy_and_paste_with_the_keyboard(shop, browser):
     s = Session(shop, browser, "/contact.html")
-    modifier = "Meta" if browser.browser_type.name == "webkit" else "Control"
+    modifier = "ControlOrMeta"  # Meta on macOS, Control on Linux and Windows
     s.page.fill("#c-name", "PS-123456")
     s.page.click("#c-name")
     s.page.keyboard.press(f"{modifier}+A")
@@ -147,9 +147,13 @@ def test_mouse_wheel_and_resize(shop, browser):
     s.page.mouse.move(100, 100)
     s.page.mouse.move(800, 500, steps=60)
     s.page.mouse.wheel(0, 600)
-    time.sleep(0.4)
+    s.page.wait_for_function("scrollY > 0")
+    time.sleep(0.3)
+    final_scroll = s.page.evaluate("scrollY")
     s.page.set_viewport_size({"width": 1000, "height": 700})
-    time.sleep(0.4)
+    # WebKit sends the resize event with the next frame.
+    s.page.wait_for_function("innerWidth === 1000")
+    time.sleep(0.5)
     events = s.leave_and_read()
 
     moves = of(events, "pointer_move")
@@ -157,11 +161,12 @@ def test_mouse_wheel_and_resize(shop, browser):
     assert all(e["ptype"] == "mouse" for e in moves)
     assert all(0 <= e["x"] <= VIEWPORT["width"] and 0 <= e["y"] <= VIEWPORT["height"] for e in moves)
     assert max(e["x"] for e in moves) >= 600
-    # The logger keeps at most one pointer_move in 50 ms.
+    # The logger keeps one pointer_move in 50 ms and the last one of a series, in the order of time.
     times = [e["t"] for e in moves]
-    assert all(b - a >= 49 for a, b in zip(times, times[1:]))
+    assert times == sorted(times) and len(moves) <= 2 * (times[-1] - times[0]) / 50 + 2
+    assert (moves[-1]["x"], moves[-1]["y"]) == (800, 500)
     assert of(events, "wheel")[0]["dy"] > 0
-    assert max(e["sy"] for e in of(events, "scroll")) > 0
+    assert of(events, "scroll")[-1]["sy"] == final_scroll
     assert {"w": 1000, "h": 700}.items() <= of(events, "resize")[-1].items()
 
 
@@ -231,7 +236,8 @@ def test_touch_gives_touch_events(shop, browser):
 
     down = of(events, "pointer_down")
     assert down and all(e["ptype"] == "touch" for e in down)
-    assert of(events, "env")[0]["env"]["touch"] > 0
+    if browser.browser_type.name == "chromium":  # Playwright sets maxTouchPoints only in Chromium.
+        assert of(events, "env")[0]["env"]["touch"] > 0
 
 
 def test_no_events_without_a_session(shop, browser):
@@ -267,3 +273,18 @@ def test_logger_stops_after_the_end_of_the_session(shop, browser):
         s.page.mouse.move(100 + 50 * x, 300)
         time.sleep(0.7)
     assert len(sent) == 1  # The server refused the first batch, so the logger sent no more.
+
+
+def test_fast_scroll_keeps_the_last_position(shop, browser):
+    s = Session(shop, browser, "/")
+    for _ in range(15):
+        s.page.mouse.wheel(0, 90)
+        time.sleep(0.02)
+    s.page.wait_for_timeout(300)
+    final = s.page.evaluate("scrollY")
+    events = s.leave_and_read()
+
+    scrolls = of(events, "scroll")
+    assert final > 0 and scrolls[-1]["sy"] == final
+    page_events = sorted((e for e in of_client(events) if e["page"] == scrolls[0]["page"]), key=lambda e: e["seq"])
+    assert all(a["t"] <= b["t"] for a, b in zip(page_events, page_events[1:]))
