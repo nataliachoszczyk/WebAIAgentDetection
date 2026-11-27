@@ -51,3 +51,6 @@
   - An "Order security check" in the checkout with three checks: retype a code, find a code in the terms, multiply two numbers.
   - Each attempt gives one `captcha` event for each check, with the time, the key presses, a paste and the scroll of the terms box.
   - A browser test checks that wrong answers stop the order, and that the events show typed and filled answers.
+- Finished M1 (Test page, #49):
+  - Updated `README.md` with the install, the tests and the run of the shop.
+  - The server events now have the field `ts`. The store reads the session file again only when it changes.

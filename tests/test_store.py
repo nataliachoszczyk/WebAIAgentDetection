@@ -47,3 +47,18 @@ def test_store_writes_and_loads_sessions(tmp_path):
     assert len(events) == 3
     assert set(events.loc[events.session == agent, "model"]) == {"google/gemini-3-flash-preview"}
     assert set(events.loc[events.session == human, "label"]) == {"human"}
+
+
+def test_store_sees_codes_from_another_process(tmp_path):
+    server_store, cli_store = Store(tmp_path), Store(tmp_path)
+    assert not server_store.is_valid("x")
+    code = cli_store.new_session("human")
+    assert server_store.is_valid(code)
+
+
+def test_server_events_get_a_time(tmp_path):
+    store = Store(tmp_path)
+    code = store.new_session("human")
+    store.append(code, [{"type": "order", "order": "PS-1"}], source="server")
+    line = json.loads((tmp_path / "events" / f"{code}.jsonl").read_text())
+    assert line["ts"] == line["recv"]

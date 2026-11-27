@@ -45,7 +45,7 @@ The browser sends these fields with each event:
 | `type` | The type of the event |
 | `path` | The path of the page, for example `/product.html?id=ridge-runner` |
 
-To put the events of a session in order, sort by `ts`, then by `page` and `seq`.
+The server events have no `page` and no `seq`, and their `ts` is the same as `recv`. To put the events of a session in order, sort by `ts`, then by `page` and `seq`.
 
 `target` describes an element in this form: the tag, then `#id`, `[name=...]` or the first class. Examples: `button#add-to-cart`, `input[name=email]`. A trap element has the form `trap:<trap id>`.
 
