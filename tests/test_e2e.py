@@ -207,6 +207,7 @@ def test_order_check_blocks_wrong_answers_and_records_the_work(shop, page):
     page.select_option("#country", "PL")
     page.check("#terms")
 
+    assert page.inner_text("label.check:has(#terms)").strip() == "I accept the terms of sale."
     page.fill("#check-reference", "WRONG")
     page.click("#place-order")
     assert page.locator(".order-check .field.error").count() == 3
@@ -302,3 +303,16 @@ def test_join_link_in_two_browsers(shop, page):
     third = page.context.browser.new_context().new_page()
     third.goto(f"{shop['url']}/join/{secret}")
     assert "This link is not active" in third.inner_text("h1")
+
+
+def test_narrow_screen_keeps_the_full_width_for_the_shop(shop, page):
+    code = shop["store"].new_session("bot", note="narrow screen")
+    page.set_viewport_size({"width": 390, "height": 844})
+    page.goto(f"{shop['url']}/s/{code}?next=/product.html?id=ridge-runner")
+    page.wait_for_selector("#shopping-list")
+    assert page.evaluate("getComputedStyle(document.body).paddingRight") == "0px"
+    box = page.locator("#shopping-list").bounding_box()
+    assert box["y"] > 844 / 2 and box["width"] > 300  # a bar at the bottom
+    assert page.locator(".product").bounding_box()["width"] > 300
+    page.click("#shopping-list button")
+    assert page.locator("#shopping-list ol").is_hidden()

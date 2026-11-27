@@ -67,7 +67,7 @@ function render() {
         <div id="checkout-extra"></div>
 
         <label class="check" style="margin:14px 0"><input type="checkbox" name="terms" id="terms">
-          I accept the <a href="/info.html#terms" target="_blank">terms of sale</a>.</label>
+          <span>I accept the <a href="/info.html#terms" target="_blank">terms of sale</a>.</span></label>
         <div id="form-error" role="alert"></div>
         <button class="btn block" type="submit" id="place-order">Place order</button>
       </form>

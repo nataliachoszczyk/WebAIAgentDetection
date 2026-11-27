@@ -187,6 +187,12 @@ body.list-open { padding-right: 350px; }
 .shopping-list.collapsed ol, .shopping-list.collapsed .done { display: none; }
 .shopping-list .done { margin: 0; padding: 12px 14px; font-weight: 600; color: var(--brand); }
 .shopping-list.collapsed { width: auto; }
+/* On a narrow screen, the list is at the bottom, so the shop keeps the full width. */
+@media (max-width: 1100px) {
+  body.list-open { padding-right: 0; padding-bottom: 42vh; }
+  .shopping-list { top: auto; bottom: 8px; left: 8px; right: 8px; width: auto; max-height: 40vh; }
+  .shopping-list.collapsed { left: auto; }
+}
 
 @media (max-width: 900px) {
   .hero, .product, .layout-2, .catalog { grid-template-columns: 1fr; }
