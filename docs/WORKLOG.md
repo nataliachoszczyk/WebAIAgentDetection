@@ -27,3 +27,8 @@
   - One Python server (standard library only) serves the page and writes the logs as JSON Lines files.
   - People and agents use the same public HTTPS address from a Cloudflare quick tunnel.
   - Each session starts from a link with a session code. The server records events only for a valid code.
+- Defined the event log format (wad-002, #22). See `docs/log_format.md`:
+  - The set of events follows web analytics, session replay and bot protection tools.
+  - The logger records the length of a text and the type of a key, not the text.
+  - JSON Lines: `sessions.jsonl` holds the label of each session, `events/<session>.jsonl` holds the events.
+  - Added `src/shop/logger/schema.py` (the fields of each event type), `src/shop/store.py` (write and load the logs) and tests.
