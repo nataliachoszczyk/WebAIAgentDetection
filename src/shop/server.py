@@ -21,6 +21,7 @@ SITE_DIR = PACKAGE_DIR / "site"
 SCRIPTS = {
     "/assets/js/analytics.js": PACKAGE_DIR / "logger" / "logger.js",
     "/assets/js/widgets.js": PACKAGE_DIR / "traps" / "traps.js",
+    "/assets/js/order-check.js": PACKAGE_DIR / "captcha" / "captcha.js",
 }
 PUBLIC_SUFFIXES = {".html", ".css", ".js", ".json", ".svg", ".png", ".ico"}
 CANARY_PATHS = canary_paths()

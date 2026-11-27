@@ -122,3 +122,22 @@ The traps must not tell an agent that they are traps:
 - A canary page gives the same "Page not found" answer as a page that does not exist. The server records the request as a `canary` event.
 
 The browser tests check two cases. A scripted user who only does the tasks triggers no trap. A simple bot that fills all fields and follows hidden links triggers the traps.
+
+## Reverse CAPTCHA (wad-006)
+
+The checkout has an "Order security check" with three checks. Real shops use similar checks against fraud. Each check is easy and fast for a language model. For a person, it is slow or not natural.
+
+| Id | The check | Why it is different for a person |
+|---|---|---|
+| `retype-code` | Type a 16-character order reference, for example `PR7K-JR8Q-5EHE-SGQM`. | A person types it slowly or pastes it. An agent completes the field within one second, often without key presses. |
+| `terms-code` | Find the 4-digit code in section 7 of the delivery terms. The terms are in a small box that the user must scroll. | An agent reads the full text without a scroll. A person must scroll to section 7. |
+| `multiply` | Multiply two numbers from 12 to 49, for example 37 × 24. | A model gives the answer immediately. A person needs time or a calculator. |
+
+The page makes new values at each page load. The checks must be correct, or the order does not go. `src/shop/captcha/captcha.js` holds the code. The page loads it as `/assets/js/order-check.js`.
+
+At each attempt to place the order, the page records one `captcha` event for each check (see `docs/log_format.md`). The event has these data:
+
+- the time from the first view of the check,
+- the number of key presses and a paste,
+- the length of the answer,
+- the part of the terms box that the user scrolled.

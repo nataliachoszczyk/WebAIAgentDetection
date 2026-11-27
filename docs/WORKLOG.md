@@ -47,3 +47,7 @@
   - The `a11y` traps are for the measure of the cost for screen reader users (wad-023).
   - The traps carry no visible marks in the DOM. The study scripts have neutral names and no comments.
   - A canary page looks like any missing page. The server records the request.
+- Added the reverse CAPTCHA (wad-006, #26). See `docs/test_page.md`:
+  - An "Order security check" in the checkout with three checks: retype a code, find a code in the terms, multiply two numbers.
+  - Each attempt gives one `captcha` event for each check, with the time, the key presses, a paste and the scroll of the terms box.
+  - A browser test checks that wrong answers stop the order, and that the events show typed and filled answers.
