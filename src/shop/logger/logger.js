@@ -5,7 +5,7 @@
 
   // Only study sessions are recorded. The session cookie is HttpOnly, so we look at the study flag.
   if (!document.cookie.split("; ").includes("wad_study=1")) {
-    window.WAD = { log() {} };
+    window.WAD = { log() {}, mark() {} };
     return;
   }
 
@@ -19,6 +19,8 @@
   let seq = 0;
   let queue = [];
   const lastTime = {};
+  // Trap elements carry no attribute that an agent can read in the DOM. The page marks them here.
+  const traps = new WeakMap();
 
   const path = () => location.pathname + location.search;
   const round = (n) => Math.round(n * 10) / 10;
@@ -49,8 +51,9 @@
   // A short, stable description of an element. It never holds the text that a user typed.
   function describe(el) {
     if (!(el instanceof Element)) return el === document || el === window ? "document" : null;
-    const trap = el.closest("[data-trap]");
-    if (trap) return `trap:${trap.dataset.trap}`;
+    for (let node = el; node; node = node.parentElement) {
+      if (traps.has(node)) return `trap:${traps.get(node)}`;
+    }
     const tag = el.tagName.toLowerCase();
     if (el.id) return `${tag}#${el.id}`;
     const name = el.getAttribute("name");
@@ -168,5 +171,5 @@
   setInterval(flush, FLUSH_MS);
 
   // Other parts of the page (shop, traps, reverse CAPTCHA) record their events here.
-  window.WAD = { log: (type, data) => emit(type, data) };
+  window.WAD = { log: (type, data) => emit(type, data), mark: (el, trap) => traps.set(el, trap) };
 })();

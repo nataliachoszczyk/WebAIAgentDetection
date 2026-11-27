@@ -26,6 +26,8 @@ h1, h2, h3 { line-height: 1.2; margin: 0 0 12px; }
 h1 { font-size: 2rem; letter-spacing: -.02em; }
 h2 { font-size: 1.35rem; }
 .muted { color: var(--muted); }
+/* Text in the screenshot that a person seldom reads: small and with a very low contrast. */
+.faint-note { font-size: 10px; line-height: 1.2; color: #e9e4db; margin: 2px 0 0; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* Buttons and fields */

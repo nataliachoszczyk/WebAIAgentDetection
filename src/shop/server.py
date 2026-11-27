@@ -11,16 +11,19 @@ from urllib.parse import parse_qs, urlsplit
 
 from .logger.schema import MAX_BATCH, InvalidEvent, clean_client_event
 from .store import Store
+from .traps import canary_paths
 
 PACKAGE_DIR = Path(__file__).resolve().parent
 
-# URL prefix -> folder. Each part of the page keeps its own folder.
-MOUNTS = {
-    "/": PACKAGE_DIR / "site",
-    "/logger/": PACKAGE_DIR / "logger",
+SITE_DIR = PACKAGE_DIR / "site"
+# The scripts of the study have neutral public names, like the scripts of a real shop.
+# A name such as "traps.js" in the page source would warn an agent that reads the DOM.
+SCRIPTS = {
+    "/assets/js/analytics.js": PACKAGE_DIR / "logger" / "logger.js",
+    "/assets/js/widgets.js": PACKAGE_DIR / "traps" / "traps.js",
 }
-# Only these files are public. Python files in the same folders stay private.
 PUBLIC_SUFFIXES = {".html", ".css", ".js", ".json", ".svg", ".png", ".ico"}
+CANARY_PATHS = canary_paths()
 
 TASKS_FILE = PACKAGE_DIR / "tasks.json"
 SESSION_COOKIE = "wad_sid"
@@ -29,15 +32,12 @@ MAX_BODY = 256 * 1024
 
 
 def resolve_static(url_path):
-    """Return the file for a URL path, or None. The file must be inside its mount folder."""
-    for prefix in sorted(MOUNTS, key=len, reverse=True):
-        if url_path.startswith(prefix):
-            root = MOUNTS[prefix]
-            relative = url_path[len(prefix):] or "index.html"
-            candidate = (root / relative).resolve()
-            if candidate.is_relative_to(root) and candidate.is_file() and candidate.suffix in PUBLIC_SUFFIXES:
-                return candidate
-            return None
+    """Return the file for a URL path, or None. A site file must be inside the site folder."""
+    if url_path in SCRIPTS:
+        return SCRIPTS[url_path]
+    candidate = (SITE_DIR / (url_path.lstrip("/") or "index.html")).resolve()
+    if candidate.is_relative_to(SITE_DIR) and candidate.is_file() and candidate.suffix in PUBLIC_SUFFIXES:
+        return candidate
     return None
 
 
@@ -59,6 +59,9 @@ class ShopHandler(BaseHTTPRequestHandler):
             return self.send_json(tasks)
         if url.path == "/api/health":
             return self.send_json({"ok": True})
+        if url.path in CANARY_PATHS:
+            self.record([{"type": "canary", "trap": CANARY_PATHS[url.path]}])
+            return self.send_not_found()
         return self.send_static(url.path)
 
     def do_POST(self):
@@ -156,15 +159,28 @@ class ShopHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(payload)
 
+    def send_not_found(self):
+        """Send the 404 page of the shop. A canary page gets the same answer as a page that does not exist."""
+        self.send_file(SITE_DIR / "404.html", HTTPStatus.NOT_FOUND)
+
     def send_static(self, url_path):
         path = resolve_static(url_path)
-        if path is None:
-            return self.send_error(HTTPStatus.NOT_FOUND)
+        if path is not None:
+            return self.send_file(path)
+        if Path(url_path).suffix in ("", ".html"):
+            return self.send_not_found()
+        return self.send_error(HTTPStatus.NOT_FOUND)
+
+    def send_file(self, path, status=HTTPStatus.OK):
         payload = path.read_bytes()
+        if path in SCRIPTS.values():
+            # The comments of the study scripts explain the study. A real shop sends no such comments.
+            lines = payload.decode("utf-8").splitlines(keepends=True)
+            payload = "".join(line for line in lines if not line.lstrip().startswith("//")).encode("utf-8")
         kind = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
         if kind.startswith("text/") or kind in ("application/javascript", "image/svg+xml"):
             kind += "; charset=utf-8"
-        self.send_response(HTTPStatus.OK)
+        self.send_response(status)
         self.send_header("Content-Type", kind)
         self.send_header("Content-Length", str(len(payload)))
         self.send_header("Cache-Control", "no-cache")
