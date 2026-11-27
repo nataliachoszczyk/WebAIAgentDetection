@@ -1,0 +1,4 @@
+# Only the listed paths go to Docker. Keys, data and git history stay out of the build.
+*
+!src/shop
+**/__pycache__

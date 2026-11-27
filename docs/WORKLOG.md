@@ -58,3 +58,8 @@
   - The four browser tests passed through the public tunnel address. The logs had all event types.
   - The tunnel adds about 0.2 s to each request. The delay is the same for people and agents.
   - The server now answers HEAD requests like a usual web server.
+- Put the public shop into Docker containers (wad-001, #21). See "Hosting" in `docs/test_page.md`:
+  - The shop image is distroless. The server runs as `nobody`, read-only, without capabilities and without access to the internet.
+  - A second container runs the Cloudflare tunnel. The shop publishes no port on the laptop.
+  - The four browser tests passed through the tunnel to the containers.
+  - Run the public shop only during a collection of traces, and stop it after each collection.
