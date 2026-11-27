@@ -130,6 +130,24 @@ Cost of the logger, measured in headless Chromium on a laptop (median of 5 page 
 
 Thus the logger adds about 2 µs to each pointer event and about 2 ms to a page load. A person cannot see this difference.
 
+### Tests of the logger
+
+`tests/test_logger.py` and `tests/test_e2e.py` run in Chromium, Firefox and WebKit (the engine of Safari). WebKit runs only if its system libraries are installed (`sudo .venv/bin/playwright install-deps webkit`). The tests check these cases:
+
+| Case | What the test checks |
+|---|---|
+| A person types and corrects a typo | One `key_down` for each key, the text after each change, `insertText` and `deleteContentBackward` |
+| An agent fills a field (Playwright `fill`) | The text arrives without key events |
+| A script sets a value or clicks | `trusted` is `false`, there is no `pointer_down` |
+| Copy and paste with the keyboard | `copy` and `paste` with the length, `input` with `insertFromPaste` |
+| A text with more than 300 characters | `value` has 300 characters, `len` has the full length |
+| Mouse, wheel, scroll, window size | At most one `pointer_move` in 50 ms, the coordinates are in the window |
+| More than 100 events on one page, then 5 pages | No event is lost or doubled: `seq` has no gaps on each page |
+| Two tabs of one session | Each tab has its own page id |
+| A touch screen | `pointer_down` with `ptype` `touch` |
+| A visitor without a session link | No request to `/api/events`, no shopping list |
+| A short network fault | The page loads the catalog again. The checkout shows an error and the second try works. |
+
 ## Traps (wad-005)
 
 A trap is an element that a person does not see, but that an agent can find. Each trap has a kind and a channel. The channel tells where the trap is:

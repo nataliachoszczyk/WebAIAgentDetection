@@ -67,3 +67,8 @@
   - The task page is `/start.html`. The panel with the tasks is "Your shopping list".
   - New neutral names: the cookies `ps_sid` and `ps_visit`, the global object `window.psAnalytics`.
   - The shop address is now in Chełm. Two tests check the served files and the rendered pages for the study words.
+- Record the typed text and test the logger in more browsers (wad-004, #24):
+  - The `input` events now have the field `value`: the text of the field after the change, at most 300 characters.
+  - New tests in `tests/test_logger.py`: typing, `fill`, script events, copy and paste, mouse, two tabs, touch, lost events, no session. See "Tests of the logger" in `docs/test_page.md`.
+  - The browser tests run in Chromium, Firefox and WebKit. WebKit needs system libraries.
+  - The pages load the catalog and the tasks again after a short network fault. The checkout and the contact form show an error after a network fault.

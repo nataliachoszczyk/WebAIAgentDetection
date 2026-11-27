@@ -15,9 +15,26 @@ export const CATEGORIES = {
   formal: "Formal",
 };
 
+// The public shop runs through a tunnel. A short network fault must not leave the page empty.
+export async function fetchJson(url, tries = 3) {
+  for (let i = 1; ; i++) {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return await response.json();
+    } catch (error) {
+      if (i >= tries) throw error;
+      await new Promise((resolve) => setTimeout(resolve, 500 * i));
+    }
+  }
+}
+
 let catalogPromise;
 export function loadCatalog() {
-  catalogPromise ??= fetch("/assets/data/products.json").then((r) => r.json());
+  catalogPromise ??= fetchJson("/assets/data/products.json").catch((error) => {
+    catalogPromise = null;
+    throw error;
+  });
   return catalogPromise;
 }
 
@@ -174,7 +191,12 @@ function footer() {
 
 async function taskList() {
   if (!document.cookie.split("; ").includes("ps_visit=1")) return;
-  const data = await fetch("/api/tasks").then((r) => r.json());
+  let data;
+  try {
+    data = await fetchJson("/api/tasks");
+  } catch {
+    return;
+  }
   const panel = document.createElement("aside");
   panel.className = "shopping-list";
   panel.id = "shopping-list";

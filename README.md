@@ -24,7 +24,7 @@ Use Python 3.12 and uv.
 
 ### Run the tests
 
-Run `.venv/bin/python -m pytest`. The browser tests do all four tasks in headless Chromium.
+Run `.venv/bin/python -m pytest`. The browser tests do all four tasks in headless Chromium, Firefox and WebKit. To install Firefox and WebKit, run `.venv/bin/playwright install firefox webkit`. WebKit also needs system libraries: `sudo .venv/bin/playwright install-deps webkit`. A test for a browser that cannot start is skipped.
 
 ### Run the shop
 

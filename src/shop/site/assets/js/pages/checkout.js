@@ -123,8 +123,8 @@ async function submit(e) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ items, total: Math.round(t.total * 100) / 100, fields: { ...data, code: getDiscountCode() } }),
-  });
-  if (!response.ok) {
+  }).catch(() => null);
+  if (!response?.ok) {
     button.disabled = false;
     button.textContent = "Place order";
     error.innerHTML = `<p class="error-text">The order failed. Try again.</p>`;
