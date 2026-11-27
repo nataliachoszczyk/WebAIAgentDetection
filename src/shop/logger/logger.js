@@ -14,6 +14,8 @@
   const MAX_QUEUE = 100;
   const THROTTLE = { pointer_move: 50, wheel: 100, scroll: 100, resize: 250 };
   const SELECTABLE = new Set(["checkbox", "radio"]);
+  // The server keeps at most 300 characters of a string.
+  const MAX_TEXT = 300;
 
   const page = Math.random().toString(36).slice(2, 10);
   let seq = 0;
@@ -48,7 +50,7 @@
       .catch(() => {});
   }
 
-  // A short, stable description of an element. It never holds the text that a user typed.
+  // A short, stable description of an element. The typed text is only in the input events.
   function describe(el) {
     if (!(el instanceof Element)) return el === document || el === window ? "document" : null;
     for (let node = el; node; node = node.parentElement) {
@@ -140,7 +142,8 @@
   listen(document, "keyup", (e) => emit("key_up", { key: keyClass(e.key ?? ""), target: describe(e.target), trusted: e.isTrusted }));
   listen(document, "input", (e) => {
     if (!isTextField(e.target)) return;
-    emit("input", { target: describe(e.target), len: e.target.value.length, itype: e.inputType ?? "", trusted: e.isTrusted });
+    const value = e.target.value;
+    emit("input", { target: describe(e.target), value: value.slice(0, MAX_TEXT), len: value.length, itype: e.inputType ?? "", trusted: e.isTrusted });
   });
   listen(document, "change", (e) => {
     const el = e.target;

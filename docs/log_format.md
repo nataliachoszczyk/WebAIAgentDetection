@@ -12,7 +12,7 @@ Real sites record similar events. We use the same set, so that our detectors use
 | Session replay | Microsoft Clarity, Hotjar | mouse movement, clicks, scroll, window size, focus of the tab, input without the text |
 | Bot protection | reCAPTCHA v3, hCaptcha, Cloudflare Turnstile, DataDome | mouse and touch movement, the time of each key press, the `isTrusted` flag of events, the browser fingerprint (user agent, `navigator.webdriver`, languages, screen, time zone, WebGL renderer) |
 
-The logger does not record the text that a person types into a text field. It records only the length of the text and the type of the key (letter, digit, Backspace and so on). It records the value of a select field, a check box or a radio button. The shop events record the data of the order, because the tasks give this data.
+The logger records the text of a text field after each change (`input` events, at most 300 characters). Thus a replay can show the typos and the corrections. A key event gives only the type of the key (letter, digit, Backspace and so on). The task page tells people that the shop records what they type. It records the value of a select field, a check box or a radio button. The shop events record the data of the order, because the tasks give this data.
 
 ## Files
 
@@ -66,7 +66,7 @@ Events from the browser:
 | `scroll` | `sx`, `sy` | The page scrolls. At most one event in 100 ms. |
 | `key_down` | `key`, `target`, `repeat`, `trusted` | A key goes down. `key` is `char`, `digit`, `space` or the name of a special key (`Backspace`, `Enter`, `Tab`, `Shift`, ...). |
 | `key_up` | `key`, `target`, `trusted` | A key goes up. |
-| `input` | `target`, `len`, `itype`, `trusted` | The text of a field changes. `len` is the new length. `itype` is the `inputType` (`insertText`, `insertFromPaste`, ...). It is empty when a script set the value. |
+| `input` | `target`, `value`, `len`, `itype`, `trusted` | The text of a field changes. `value` is the new text (at most 300 characters). `len` is the new length. `itype` is the `inputType` (`insertText`, `insertFromPaste`, ...). It is empty when a script set the value. |
 | `change` | `target`, `value`, `trusted` | A select field, a check box or a radio button changes. |
 | `paste`, `copy` | `target`, `len` | A paste or a copy. `len` is the length of the text. |
 | `focus`, `blur` | `target` | A form field gets or loses the focus. |

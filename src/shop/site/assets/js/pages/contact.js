@@ -22,9 +22,9 @@ form.addEventListener("submit", async (e) => {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ fields: data }),
-  });
-  status.innerHTML = response.ok
+  }).catch(() => null);
+  status.innerHTML = response?.ok
     ? `<div class="notice ok">Thank you. We received your message and answer within one working day.</div>`
     : `<p class="error-text">The message was not sent. Try again.</p>`;
-  if (response.ok) form.reset();
+  if (response?.ok) form.reset();
 });

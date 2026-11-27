@@ -20,8 +20,8 @@
     </div>
   </main>
   <script type="module">
-    import { esc } from "/assets/js/common.js";
-    const data = await fetch("/api/tasks").then((r) => r.json());
+    import { esc, fetchJson } from "/assets/js/common.js";
+    const data = await fetchJson("/api/tasks");
     document.getElementById("intro").textContent = data.intro;
     document.getElementById("task-list").innerHTML = data.tasks
       .map((t) => `<li><strong>${esc(t.title)}.</strong> ${esc(t.text)}</li>`).join("");

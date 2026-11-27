@@ -20,7 +20,7 @@ CLIENT_EVENTS = {
     "scroll": ("sx", "sy"),
     "key_down": ("key", "target", "repeat", "trusted"),
     "key_up": ("key", "target", "trusted"),
-    "input": ("target", "len", "itype", "trusted"),
+    "input": ("target", "value", "len", "itype", "trusted"),
     "change": ("target", "value", "trusted"),
     "paste": ("target", "len"),
     "copy": ("target", "len"),

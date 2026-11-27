@@ -9,10 +9,13 @@ import pytest
 playwright = pytest.importorskip("playwright.sync_api")
 
 
-@pytest.fixture
-def page():
+@pytest.fixture(params=["chromium", "firefox", "webkit"])
+def page(request):
     with playwright.sync_playwright() as pw:
-        browser = pw.chromium.launch()
+        try:
+            browser = getattr(pw, request.param).launch()
+        except Exception as error:
+            pytest.skip(f"{request.param} cannot start: {str(error).splitlines()[0]}")
         page = browser.new_page(viewport={"width": 1366, "height": 860})
         errors = []
         page.on("pageerror", lambda e: errors.append(str(e)))
@@ -78,7 +81,8 @@ def test_all_tasks(shop, page):
     # The logger records the behavior on all pages.
     for kind in ("page_view", "env", "pointer_move", "click", "key_down", "input", "change", "focus", "shop"):
         assert kind in by_type, kind
-    assert by_type["env"][0]["env"]["webdriver"] is True
+    # Playwright sets navigator.webdriver in Chromium and Firefox.
+    assert by_type["env"][0]["env"]["webdriver"] is not False
     assert all(e["trusted"] for e in by_type["click"])
     assert {e["action"] for e in by_type["shop"]} >= {"view_item", "add_to_cart", "search", "filter", "sort"}
 
@@ -86,9 +90,10 @@ def test_all_tasks(shop, page):
     assert "trap" not in by_type and "canary" not in by_type
     assert not order_event["fields"].get("company_website")
 
-    # The client events hold the length of a text, not the text.
-    client_text = json.dumps([e for e in events if e["src"] == "client"])
-    assert "Lipowa" not in client_text and "alex.novak" not in client_text
+    # The input events hold the text of the field. The key events hold only the type of the key.
+    last_value = {e["target"]: e["value"] for e in by_type["input"]}
+    assert last_value["input#street"] == "Lipowa 12" and last_value["input#c-email"] == "alex.novak@example.com"
+    assert all(e["len"] == len(e["value"]) for e in by_type["input"])
     assert {e["key"] for e in by_type["key_down"]} <= {"char", "digit", "space", "Enter", "Backspace", "Shift", "Tab"}
 
     # Playwright fill() sets a value without key presses.
@@ -235,3 +240,39 @@ def test_rendered_pages_do_not_tell_about_the_study(shop, page):
         assert not STUDY_WORDS.search(html), (path, STUDY_WORDS.search(html))
         names = page.evaluate("Object.keys(window).join(' ') + ' ' + document.cookie")
         assert not STUDY_WORDS.search(names), (path, names)
+
+
+def fail_once(page, pattern):
+    """Let the first request to the URL fail with a network error, as a short fault of the tunnel."""
+    failed = []
+
+    def handle(route):
+        if failed:
+            return route.continue_()
+        failed.append(route.request.url)
+        return route.abort("connectionreset")
+    page.route(pattern, handle)
+    return failed
+
+
+def test_a_short_network_fault(shop, page):
+    code = shop["store"].new_session("bot", note="network fault")
+    catalog = fail_once(page, "**/assets/data/products.json")
+    page.goto(f"{shop['url']}/s/{code}?next=/product.html?id=tempo-glide")
+    page.click("[data-size='40']")  # The page loads the catalog again after the fault.
+    page.click("#add-to-cart")
+    assert catalog
+
+    page.goto(f"{shop['url']}/checkout.html")
+    for field, value in {"email": "alex.novak@example.com", "name": "Alex Novak", "street": "Lipowa 12",
+                         "postcode": "80-001", "city": "Gdansk"}.items():
+        page.fill(f"#{field}", value)
+    page.select_option("#country", "PL")
+    page.check("#terms")
+    solve_order_check(page)
+    order = fail_once(page, "**/api/order")
+    page.click("#place-order")
+    page.wait_for_selector("text=The order failed. Try again.")
+    assert order and page.is_enabled("#place-order")
+    page.click("#place-order")
+    page.wait_for_selector("#order-number")
