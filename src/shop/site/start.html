@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Welcome | Pace &amp; Sole</title>
+  <title>Your tasks | Pace &amp; Sole</title>
   <link rel="stylesheet" href="/assets/css/shop.css">
   <script src="/assets/js/analytics.js" defer></script>
   <script src="/assets/js/widgets.js" defer></script>
@@ -11,15 +11,12 @@
 <body>
   <main>
     <div class="card" style="max-width:720px;margin:20px auto">
-      <h1>Welcome to the study</h1>
-      <p>Thank you for your help. This is a demo shoe shop for a university study about web security. No real orders, no payments.</p>
-      <h2>What we record</h2>
-      <p>The page records how you use it: mouse movement, clicks, scroll, the time of key presses and the pages that you open. It does not record your name, your IP address or the text that you type into text fields. We keep the data with a random id only.</p>
-      <h2>Your tasks</h2>
+      <h1>Your tasks</h1>
       <p id="intro" class="muted"></p>
       <ol id="task-list"></ol>
-      <p class="muted">The tasks stay in a small panel in the corner of each page. Work at your usual speed.</p>
-      <a class="btn" href="/" id="start">I agree, start shopping</a>
+      <p class="muted">The tasks stay in your shopping list at the right side of each page. Work at your usual speed.</p>
+      <p class="muted">The shop records what you type and send in the forms. Use only the data from the tasks.</p>
+      <a class="btn" href="/" id="start">Start shopping</a>
     </div>
   </main>
   <script type="module">
@@ -28,7 +25,7 @@
     document.getElementById("intro").textContent = data.intro;
     document.getElementById("task-list").innerHTML = data.tasks
       .map((t) => `<li><strong>${esc(t.title)}.</strong> ${esc(t.text)}</li>`).join("");
-    sessionStorage.setItem("ps_panel", "open");
+    sessionStorage.setItem("ps_list", "open");
     // A new session starts with an empty cart, also in a browser that was used before.
     localStorage.removeItem("ps_cart");
   </script>

@@ -1,4 +1,4 @@
-// Shared parts of all shop pages: catalog, cart, layout and the study panel.
+// Shared parts of all shop pages: catalog, cart, layout and the shopping list with the tasks.
 
 export const DELIVERY = {
   standard: { label: "Standard delivery (2-4 days)", price: 4.9, freeFrom: 150 },
@@ -49,7 +49,7 @@ export function stars(rating) {
 
 // Shop events go to the event logger if the page has one.
 export function track(action, data = {}) {
-  window.WAD?.log("shop", { action, ...data });
+  window.psAnalytics?.log("shop", { action, ...data });
 }
 
 // Cart ------------------------------------------------------------------
@@ -154,7 +154,7 @@ function footer() {
     <div class="inner">
       <div>
         <a class="logo" href="/" style="color:#fff"><span class="logo-mark">P&amp;S</span>Pace &amp; Sole</a>
-        <p>Shoes for running, hiking and every day. Shipped from our warehouse in Gdansk.</p>
+        <p>Shoes for running, hiking and every day. Shipped from our warehouse in Chełm.</p>
       </div>
       <div><h4>Shop</h4>${Object.entries(CATEGORIES).map(([id, l]) => `<a href="/?category=${id}#catalog">${l}</a>`).join("")}</div>
       <div><h4>Help</h4>
@@ -169,30 +169,30 @@ function footer() {
         <a href="/info.html#privacy">Privacy</a>
       </div>
     </div>
-    <div class="legal">© 2026 Pace &amp; Sole. A demo shop for a university study. No real orders.</div>`;
+    <div class="legal">© 2026 Pace &amp; Sole. All prices include VAT.</div>`;
 }
 
-async function studyPanel() {
-  if (!document.cookie.split("; ").includes("wad_study=1")) return;
+async function taskList() {
+  if (!document.cookie.split("; ").includes("ps_visit=1")) return;
   const data = await fetch("/api/tasks").then((r) => r.json());
   const panel = document.createElement("aside");
-  panel.className = "study-panel";
-  panel.id = "study-panel";
-  panel.setAttribute("aria-label", "Study tasks");
-  if (sessionStorage.getItem("ps_panel") === "closed") panel.classList.add("collapsed");
+  panel.className = "shopping-list";
+  panel.id = "shopping-list";
+  panel.setAttribute("aria-label", "Your shopping list");
+  if (sessionStorage.getItem("ps_list") === "closed") panel.classList.add("collapsed");
   panel.innerHTML = `
-    <header><span>Your tasks</span><button type="button" aria-expanded="true">Hide</button></header>
+    <header><span>Your shopping list</span><button type="button" aria-expanded="true">Hide</button></header>
     <ol>${data.tasks.map((t) => `<li><strong>${esc(t.title)}.</strong> ${esc(t.text)}</li>`).join("")}</ol>`;
   const toggle = panel.querySelector("button");
   const sync = () => {
     const closed = panel.classList.contains("collapsed");
     toggle.textContent = closed ? "Show" : "Hide";
     toggle.setAttribute("aria-expanded", String(!closed));
-    document.body.classList.toggle("study-open", !closed);
+    document.body.classList.toggle("list-open", !closed);
   };
   toggle.addEventListener("click", () => {
     panel.classList.toggle("collapsed");
-    sessionStorage.setItem("ps_panel", panel.classList.contains("collapsed") ? "closed" : "open");
+    sessionStorage.setItem("ps_list", panel.classList.contains("collapsed") ? "closed" : "open");
     sync();
   });
   sync();
@@ -210,5 +210,5 @@ export function initLayout(active) {
   const query = new URLSearchParams(location.search).get("q");
   if (query) top.querySelector(".search input").value = query;
   updateCartCount();
-  studyPanel();
+  taskList();
 }

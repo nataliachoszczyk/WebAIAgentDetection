@@ -63,3 +63,7 @@
   - A second container runs the Cloudflare tunnel. The shop publishes no port on the laptop.
   - The four browser tests passed through the tunnel to the containers.
   - Run the public shop only during a collection of traces, and stop it after each collection.
+- Removed the words that tell about the study from the shop (wad-003, #23). See "Words that tell about the study" in `docs/test_page.md`:
+  - The task page is `/start.html`. The panel with the tasks is "Your shopping list".
+  - New neutral names: the cookies `ps_sid` and `ps_visit`, the global object `window.psAnalytics`.
+  - The shop address is now in Chełm. Two tests check the served files and the rendered pages for the study words.

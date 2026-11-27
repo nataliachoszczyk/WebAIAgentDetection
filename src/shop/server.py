@@ -27,8 +27,9 @@ PUBLIC_SUFFIXES = {".html", ".css", ".js", ".json", ".svg", ".png", ".ico"}
 CANARY_PATHS = canary_paths()
 
 TASKS_FILE = PACKAGE_DIR / "tasks.json"
-SESSION_COOKIE = "wad_sid"
-STUDY_COOKIE = "wad_study"
+# Neutral names, like the cookies of a real shop.
+SESSION_COOKIE = "ps_sid"
+STUDY_COOKIE = "ps_visit"
 MAX_BODY = 256 * 1024
 
 
@@ -98,9 +99,9 @@ class ShopHandler(BaseHTTPRequestHandler):
             return self.send_error(HTTPStatus.NOT_FOUND)
         self.store.append(code, [{"type": "session_start", "ua": self.headers.get("User-Agent", "")}],
                           source="server")
-        target = query.get("next", ["/study.html"])[0]
+        target = query.get("next", ["/start.html"])[0]
         if not target.startswith("/") or target.startswith("//"):
-            target = "/study.html"
+            target = "/start.html"
         self.send_response(HTTPStatus.FOUND)
         self.send_header("Location", target)
         # The session cookie is HttpOnly, so a script on the page cannot read the code.

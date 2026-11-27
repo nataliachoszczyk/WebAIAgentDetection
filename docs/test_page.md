@@ -84,7 +84,7 @@ The shop takes no money. The checkout has no card fields: the payment options ar
 3. Place the order with the given address, standard delivery and payment on delivery.
 4. Ask a question in the contact form, with the order number from task 3.
 
-A session starts on the study page (`/study.html`). This page tells what the shop records and shows the tasks. During the session, a panel at the right side of each page shows the tasks. The panel has its own column, so it never covers a part of the shop. The API (`/api/tasks`) does not give the expected answers. The analysis reads them from `tasks.json`.
+A session starts on the task page (`/start.html`). This page shows the tasks and tells that the shop records what the user types and sends in the forms. During the session, the shopping list at the right side of each page shows the tasks. The panel has its own column, so it never covers a part of the shop. The API (`/api/tasks`) does not give the expected answers. The analysis reads them from `tasks.json`.
 
 ### Structure of the code
 
@@ -112,14 +112,14 @@ For an agent, give the model id: `python -m src.shop new-session --label agent -
 
 ## The event logger (wad-004)
 
-`src/shop/logger/logger.js` records the events of `docs/log_format.md`. Each page loads it from `/logger/logger.js`.
+`src/shop/logger/logger.js` records the events of `docs/log_format.md`. Each page loads it from `/assets/js/analytics.js`.
 
-- The logger records only study sessions: the session link sets the cookie `wad_study=1`. Other visitors send no events.
+- The logger records only study sessions: the session link sets the cookie `ps_visit=1`. Other visitors send no events.
 - The listeners are passive. They never stop or change an event, so the page works the same with the logger.
 - The logger sends the events in batches to `POST /api/events`: every 2 s, at 100 events and at the end of each page (`sendBeacon`).
 - The server accepts events only for a valid session cookie. It keeps only the known fields of each event type and drops unknown event types.
 - The server serves only HTML, CSS, JavaScript, JSON and image files. The Python files in the same folders stay private.
-- The shop, the traps and the reverse CAPTCHA record their own events through `window.WAD.log(type, data)`.
+- The shop, the traps and the reverse CAPTCHA record their own events through `window.psAnalytics.log(type, data)`.
 
 Cost of the logger, measured in headless Chromium on a laptop (median of 5 page loads):
 
@@ -152,7 +152,7 @@ A trap is an element that a person does not see, but that an agent can find. Eac
 
 The traps must not tell an agent that they are traps:
 
-- A trap element has no attribute such as `data-trap`. The logger keeps the marks in memory (`window.WAD.mark`), and the events give the target `trap:<id>`.
+- A trap element has no attribute such as `data-trap`. The logger keeps the marks in memory (`window.psAnalytics.mark`), and the events give the target `trap:<id>`.
 - The page loads the study scripts with neutral names: `/assets/js/analytics.js` (the logger) and `/assets/js/widgets.js` (the traps). The server removes the comments from these two scripts.
 - `traps.json` is not public.
 - A canary page gives the same "Page not found" answer as a page that does not exist. The server records the request as a `canary` event.
@@ -177,3 +177,13 @@ At each attempt to place the order, the page records one `captcha` event for eac
 - the number of key presses and a paste,
 - the length of the answer,
 - the part of the terms box that the user scrolled.
+
+## Words that tell about the study
+
+An agent that sees that a page is a test can act in a different way. Thus the pages do not tell that the shop is a test:
+
+- No page, script, cookie or global name has the words "study", "demo", "university", "research", "experiment" or "wad". Two tests check the served files and the rendered pages.
+- The cookies are `ps_sid` (the session, HttpOnly) and `ps_visit` (the logger is on). The global object of the logger is `window.psAnalytics`.
+- The panel with the tasks is "Your shopping list". The first page of a session is "Your tasks" (`/start.html`).
+- The shop has the address of a warehouse that does not exist: Podeszwowa 6, 22-100 Chełm.
+- People know about the study from the invitation. The task page tells them that the shop records what they type and send in the forms.

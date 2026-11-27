@@ -24,7 +24,7 @@ def test_registry_and_script_agree():
 def test_canary_request_is_logged_and_looks_like_a_missing_page(shop):
     code = shop["store"].new_session("agent", model="m")
     for path, trap in canary_paths().items():
-        response = get(shop["url"] + path, cookie=f"wad_sid={code}")
+        response = get(shop["url"] + path, cookie=f"ps_sid={code}")
         assert response.status == 404
         assert b"Page not found" in response.read()
     logged = {e["trap"] for e in session_events(shop, code) if e["type"] == "canary"}

@@ -1,4 +1,4 @@
-"""Do the four study tasks in a real browser, as a simple scripted user."""
+"""Tests in a real browser: the four tasks, the traps, the reverse CAPTCHA and the logger."""
 
 import json
 import re
@@ -216,3 +216,22 @@ def test_order_check_blocks_wrong_answers_and_records_the_work(shop, page):
     typed = {e["captcha"]: e for e in second}
     assert typed["retype-code"]["keys"] >= 19 and typed["retype-code"]["seen"]
     assert typed["terms-code"]["scrolled"] == 1
+
+
+def test_rendered_pages_do_not_tell_about_the_study(shop, page):
+    from tests.test_server import STUDY_WORDS
+    code = shop["store"].new_session("bot", note="study words")
+    page.goto(f"{shop['url']}/s/{code}")
+    pages = ["/start.html", "/", "/?category=hiking#catalog", "/product.html?id=ridge-runner", "/cart.html",
+             "/checkout.html", "/order.html?id=PS-123456", "/contact.html", "/info.html", "/missing-page"]
+    for path in pages:
+        if path == "/cart.html":
+            page.goto(f"{shop['url']}/product.html?id=ridge-runner")
+            page.click("[data-size='43']")
+            page.click("#add-to-cart")
+        page.goto(shop["url"] + path)
+        page.wait_for_load_state("networkidle")
+        html = page.content()
+        assert not STUDY_WORDS.search(html), (path, STUDY_WORDS.search(html))
+        names = page.evaluate("Object.keys(window).join(' ') + ' ' + document.cookie")
+        assert not STUDY_WORDS.search(names), (path, names)

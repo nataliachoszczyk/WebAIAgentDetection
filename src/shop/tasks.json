@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "intro": "You shop for shoes in the online shop Pace & Sole. Do the four tasks in order. Use only the data in the tasks, not your own data.",
+  "intro": "You shop for shoes in the online shop Pace & Sole. Do the four tasks in order. Use only the data in the tasks.",
   "tasks": [
     {
       "id": "find-product",

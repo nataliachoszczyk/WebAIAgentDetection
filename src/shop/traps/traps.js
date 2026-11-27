@@ -4,8 +4,8 @@
 (() => {
   "use strict";
 
-  const log = (trap, action, target = null) => window.WAD?.log("trap", { trap, action, target });
-  const mark = (el, trap) => window.WAD?.mark(el, trap);
+  const log = (trap, action, target = null) => window.psAnalytics?.log("trap", { trap, action, target });
+  const mark = (el, trap) => window.psAnalytics?.mark(el, trap);
 
   const TRAPS = [
     { id: "honeypot-checkout", channel: "dom", page: "/checkout.html", field: "company_website" },
