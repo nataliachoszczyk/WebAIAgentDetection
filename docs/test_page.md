@@ -25,6 +25,24 @@ Limits:
 
 - The quick tunnel gives a new address each time. Make the session links after the start of the tunnel.
 - The laptop must run during the collection of traces. After the collection, upload the logs to the private Kaggle dataset.
+- While the tunnel runs, each person with the address can open the shop. Without a session link, the server records nothing.
+
+To make the shop public, do these steps:
+
+1. Install `cloudflared` from the [official releases](https://github.com/cloudflare/cloudflared/releases). Compare its SHA-256 hash with the release notes.
+2. Start the server: `.venv/bin/python -m src.shop serve --port 8000`
+3. Start the tunnel: `cloudflared tunnel --no-autoupdate --url http://localhost:8000`
+4. Copy the `https://<name>.trycloudflare.com` address from the output of the tunnel.
+5. Make the session links: `.venv/bin/python -m src.shop new-session --label human --base-url https://<name>.trycloudflare.com`
+6. After the collection, stop the tunnel and the server.
+
+Check of the tunnel (2026-11-27, `cloudflared` 2026.11.2):
+
+- The four browser tests from `tests/test_e2e.py` passed through the tunnel address.
+- The logs had all event types: pointer, keys, captcha, traps, canary, orders and the contact message.
+- The tunnel did not change the User-Agent of the browser.
+- A request for `/index.html` took about 0.2 s through the tunnel and about 2 ms on localhost. The delay is the same for people and agents.
+- The server did not answer HEAD requests (status 501). A real web server answers them, so the server now answers HEAD like GET without the body.
 
 ## The shop (wad-003)
 
