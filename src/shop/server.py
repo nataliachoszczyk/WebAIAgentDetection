@@ -59,6 +59,7 @@ class ShopHandler(BaseHTTPRequestHandler):
             tasks = json.loads(TASKS_FILE.read_text(encoding="utf-8"))
             # The expected answers are for the analysis only, not for the page.
             tasks.pop("expected", None)
+            tasks["done"] = self.store.state(self.session(), "closed") is not None
             return self.send_json(tasks)
         if url.path == "/api/health":
             return self.send_json({"ok": True})
@@ -89,17 +90,28 @@ class ShopHandler(BaseHTTPRequestHandler):
     # Sessions ------------------------------------------------------------
 
     def session(self):
-        """Return the session code of the request if it is valid, else None."""
+        """Return the session code of the request if the session takes events, else None."""
+        code = self.cookie_session()
+        return code if self.store.accepts_events(code) else None
+
+    def cookie_session(self):
         cookie = SimpleCookie(self.headers.get("Cookie", ""))
-        code = cookie[SESSION_COOKIE].value if SESSION_COOKIE in cookie else None
-        return code if self.store.is_valid(code) else None
+        return cookie[SESSION_COOKIE].value if SESSION_COOKIE in cookie else None
 
     def start_session(self, code, query):
         if not self.store.is_valid(code):
-            return self.send_error(HTTPStatus.NOT_FOUND)
-        self.store.append(code, [{"type": "session_start", "ua": self.headers.get("User-Agent", "")}],
-                          source="server")
-        target = query.get("next", ["/start.html"])[0]
+            return self.send_not_found()
+        if self.store.state(code, "closed") is not None:
+            # The person who did the tasks sees the end page. A second person cannot use the link.
+            if self.cookie_session() == code:
+                return self.send_file(SITE_DIR / "done.html")
+            return self.send_file(SITE_DIR / "closed.html", HTTPStatus.GONE)
+        again = self.store.state(code, "started") is not None
+        self.store.mark(code, "started")
+        self.store.append(code, [{"type": "session_start", "ua": self.headers.get("User-Agent", ""),
+                                  "again": again}], source="server")
+        # A person who opens the link again continues with the same cart.
+        target = query.get("next", ["/" if again else "/start.html"])[0]
         if not target.startswith("/") or target.startswith("//"):
             target = "/start.html"
         self.send_response(HTTPStatus.FOUND)
@@ -139,10 +151,16 @@ class ShopHandler(BaseHTTPRequestHandler):
         order = "PS-" + "".join(secrets.choice("0123456789") for _ in range(6))
         self.record([{"type": "order", "order": order, "items": items,
                       "total": body.get("total"), "fields": body.get("fields", {})}])
+        if self.session():
+            self.store.mark(self.session(), "ordered")
         return self.send_json({"order": order})
 
     def send_contact(self, body):
         self.record([{"type": "contact", "fields": body.get("fields", {})}])
+        session = self.session()
+        # The contact message after the order is the last task. The session then ends.
+        if session and self.store.state(session, "ordered") is not None:
+            self.store.mark(session, "closed")
         return self.send_json({"ok": True})
 
     # Helpers -------------------------------------------------------------

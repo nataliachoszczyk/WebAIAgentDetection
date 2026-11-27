@@ -66,6 +66,8 @@ def test_all_tasks(shop, page):
     page.fill("#c-message", "Can I return the boots after 40 days?")
     page.click("text=Send message")
     page.wait_for_selector(".notice.ok")
+    # The contact message is the last task. The shopping list tells that all tasks are done.
+    page.wait_for_selector("#shopping-list .done")
 
     page.goto(f"{shop['url']}/")  # The page change sends the last events.
     events = wait_for_events(shop["data"] / "events" / f"{code}.jsonl", "contact")
@@ -77,6 +79,9 @@ def test_all_tasks(shop, page):
     assert {i["product"] for i in order_event["items"]} == {"ridge-runner", "alder-trek"}
     assert order_event["fields"]["delivery"] == "standard"
     assert by_type["contact"][0]["fields"]["order"] == order
+    assert page.locator("#shopping-list .done").count() == 1
+    page.goto(f"{shop['url']}/s/{code}")
+    assert "All tasks are done" in page.inner_text("h1")
 
     # The logger records the behavior on all pages.
     for kind in ("page_view", "env", "pointer_move", "click", "key_down", "input", "change", "focus", "shop"):

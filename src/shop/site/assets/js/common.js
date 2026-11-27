@@ -189,8 +189,9 @@ function footer() {
     <div class="legal">© 2026 Pace &amp; Sole. All prices include VAT.</div>`;
 }
 
-async function taskList() {
+export async function taskList() {
   if (!document.cookie.split("; ").includes("ps_visit=1")) return;
+  document.getElementById("shopping-list")?.remove();
   let data;
   try {
     data = await fetchJson("/api/tasks");
@@ -202,9 +203,12 @@ async function taskList() {
   panel.id = "shopping-list";
   panel.setAttribute("aria-label", "Your shopping list");
   if (sessionStorage.getItem("ps_list") === "closed") panel.classList.add("collapsed");
+  const list = data.done
+    ? `<p class="done">All tasks are done. Thank you! You can close this page.</p>`
+    : `<ol>${data.tasks.map((t) => `<li><strong>${esc(t.title)}.</strong> ${esc(t.text)}</li>`).join("")}</ol>`;
   panel.innerHTML = `
     <header><span>Your shopping list</span><button type="button" aria-expanded="true">Hide</button></header>
-    <ol>${data.tasks.map((t) => `<li><strong>${esc(t.title)}.</strong> ${esc(t.text)}</li>`).join("")}</ol>`;
+    ${list}`;
   const toggle = panel.querySelector("button");
   const sync = () => {
     const closed = panel.classList.contains("collapsed");

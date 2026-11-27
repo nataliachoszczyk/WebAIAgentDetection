@@ -20,6 +20,8 @@
   const page = Math.random().toString(36).slice(2, 10);
   let seq = 0;
   let queue = [];
+  // The server refuses the events after the end of the session. Then the logger stops.
+  let stopped = false;
   const lastTime = {};
   // Trap elements carry no attribute that an agent can read in the DOM. The page marks them here.
   const traps = new WeakMap();
@@ -38,7 +40,7 @@
   }
 
   function flush(final = false) {
-    if (!queue.length) return;
+    if (!queue.length || stopped) return;
     const body = JSON.stringify({ events: queue });
     queue = [];
     // At the end of a page, only sendBeacon is sure to reach the server.
@@ -47,6 +49,7 @@
       return;
     }
     fetch(ENDPOINT, { method: "POST", headers: { "Content-Type": "application/json" }, body, keepalive: true })
+      .then((response) => { if (response.status === 403) stopped = true; })
       .catch(() => {});
   }
 

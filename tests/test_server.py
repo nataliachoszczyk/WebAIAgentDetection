@@ -150,3 +150,36 @@ def test_public_files_do_not_tell_about_the_study(shop):
         assert not STUDY_WORDS.search(text), (path, STUDY_WORDS.search(text))
     for cookie in get(shop["url"] + "/s/" + shop["store"].new_session("human")).headers.get_all("Set-Cookie"):
         assert not STUDY_WORDS.search(cookie.split("=")[0])
+
+
+def test_session_continues_and_ends_after_the_contact_message(shop):
+    store, url = shop["store"], shop["url"]
+    code = store.new_session("human")
+    cookie = f"ps_sid={code}"
+    assert get(f"{url}/s/{code}").headers["Location"] == "/start.html"
+    # A second open continues the session with the same cart.
+    assert get(f"{url}/s/{code}", cookie=cookie).headers["Location"] == "/"
+    starts = [e for e in session_events(shop, code) if e["type"] == "session_start"]
+    assert [e["again"] for e in starts] == [False, True]
+
+    post(url + "/api/contact", {"fields": {"message": "before the order"}}, cookie=cookie)
+    assert store.state(code, "closed") is None  # The order comes first.
+    post(url + "/api/order", {"items": [{"product": "ridge-runner"}]}, cookie=cookie)
+    post(url + "/api/contact", {"fields": {"message": "after the order"}}, cookie=cookie)
+    assert store.state(code, "ordered") and store.state(code, "closed")
+    assert json.load(get(url + "/api/tasks", cookie=cookie))["done"] is True
+
+    batch = {"events": [{"type": "scroll", "seq": 0, "t": 1, "sx": 0, "sy": 10}]}
+    assert post(url + "/api/events", batch, cookie=cookie).status == 200  # the last seconds of the page
+    store.grace_ms = 0
+    assert post(url + "/api/events", batch, cookie=cookie).status == 403
+
+    done = get(f"{url}/s/{code}", cookie=cookie)
+    assert done.status == 200 and b"All tasks are done" in done.read()
+    stranger = get(f"{url}/s/{code}")
+    assert stranger.status == 410 and b"no longer active" in stranger.read()
+    assert not any(c.startswith("ps_sid") for c in stranger.headers.get_all("Set-Cookie") or [])
+
+
+def test_tasks_are_not_done_without_a_session(shop):
+    assert json.load(get(shop["url"] + "/api/tasks"))["done"] is False

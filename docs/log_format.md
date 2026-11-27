@@ -19,6 +19,10 @@ The logger records the text of a text field after each change (`input` events, a
 The server writes all files into one data folder (default `data/shop/`):
 
 - `sessions.jsonl`: one line for each session code. Fields: `session` (the code), `label` (`human`, `agent` or `bot`), `model` (the model id of an agent, or empty), `note`, `created` (Unix time in ms).
+  Later lines of a session add its states, each with a Unix time in ms:
+  - `started`: the first open of the session link.
+  - `ordered`: the first order.
+  - `closed`: the first contact message after the order. This is the last task, so the session ends.
 - `events/<session>.jsonl`: the events of one session, one JSON object on each line, in the order of arrival.
 
 JSON Lines is plain text. A person can read it in an editor, and `pandas.read_json(path, lines=True)` loads it directly. `src.shop.store.load_events(data_dir)` loads all sessions into one DataFrame with the label and the model of each session.
@@ -85,7 +89,7 @@ Events from the server:
 
 | Type | Fields | When |
 |---|---|---|
-| `session_start` | `ua` | The user opens the session link `/s/<code>`. |
+| `session_start` | `ua`, `again` | The user opens the session link `/s/<code>`. `again` is `true` if the session started before. |
 | `canary` | `trap` | The user opens a canary link. |
 | `order` | `order`, `items`, `total`, `fields` | The user places an order. `fields` holds the data of the checkout form. |
 | `contact` | `fields` | The user sends the contact form. |

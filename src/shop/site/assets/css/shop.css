@@ -184,7 +184,8 @@ body.list-open { padding-right: 350px; }
 .shopping-list header button { background: none; border: 0; cursor: pointer; color: var(--muted); font: inherit; }
 .shopping-list ol { margin: 0; padding: 10px 14px 12px 32px; }
 .shopping-list li { margin-bottom: 8px; }
-.shopping-list.collapsed ol { display: none; }
+.shopping-list.collapsed ol, .shopping-list.collapsed .done { display: none; }
+.shopping-list .done { margin: 0; padding: 12px 14px; font-weight: 600; color: var(--brand); }
 .shopping-list.collapsed { width: auto; }
 
 @media (max-width: 900px) {
