@@ -80,3 +80,7 @@
   - `/join/<secret>` gives each new browser its own session, up to a limit and until a date.
   - The same browser keeps its session. Parallel visits cannot pass the limit.
   - New commands: `new-join` and `status`.
+- Checked all pages in Chromium and Firefox with screenshots:
+  - On a narrow screen (below 1100 px), the task list is now a bar at the bottom. Before, it took 350 px of the width, and the shop did not fit on a phone.
+  - The label of the terms check box had a space before the full stop.
+  - New tests check the label and the narrow screen.
