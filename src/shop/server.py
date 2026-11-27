@@ -43,6 +43,7 @@ def resolve_static(url_path):
 
 
 class ShopHandler(BaseHTTPRequestHandler):
+    # The default header names a Python test server. A real shop shows a usual web server.
     server_version = "nginx"
     sys_version = ""
     store: Store
@@ -142,7 +143,10 @@ class ShopHandler(BaseHTTPRequestHandler):
     # Helpers -------------------------------------------------------------
 
     def read_json(self):
-        length = int(self.headers.get("Content-Length") or 0)
+        try:
+            length = int(self.headers.get("Content-Length") or 0)
+        except ValueError:
+            return None
         if length <= 0 or length > MAX_BODY:
             return None
         try:
