@@ -29,14 +29,35 @@
   const path = () => location.pathname + location.search;
   const round = (n) => Math.round(n * 10) / 10;
 
-  function emit(type, data = {}) {
-    const t = performance.now();
-    if (THROTTLE[type]) {
-      if (t - (lastTime[type] ?? -Infinity) < THROTTLE[type]) return;
-      lastTime[type] = t;
-    }
+  // A throttled type keeps its last skipped event. The logger sends it at the end of the wait or before
+  // the next event. Thus the last position of a fast series is never lost, and the times stay in order.
+  const skipped = {};
+
+  function push(type, t, data) {
     queue.push({ page, seq: seq++, t: round(t), ts: Math.round(performance.timeOrigin + t), type, path: path(), ...data });
     if (queue.length >= MAX_QUEUE) flush();
+  }
+
+  function releaseSkipped() {
+    for (const [type, item] of Object.entries(skipped).sort((a, b) => a[1].t - b[1].t)) {
+      clearTimeout(item.timer);
+      delete skipped[type];
+      lastTime[type] = item.t;
+      push(type, item.t, item.data);
+    }
+  }
+
+  function emit(type, data = {}) {
+    const t = performance.now();
+    const wait = THROTTLE[type];
+    if (wait && t - (lastTime[type] ?? -Infinity) < wait) {
+      const timer = skipped[type]?.timer ?? setTimeout(releaseSkipped, lastTime[type] + wait - t);
+      skipped[type] = { t, data, timer };
+      return;
+    }
+    releaseSkipped();
+    if (wait) lastTime[type] = t;
+    push(type, t, data);
   }
 
   function flush(final = false) {

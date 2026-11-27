@@ -87,3 +87,7 @@
 - Did a full check of the collection through Docker and the tunnel (wad-001, #21). See "Full check of the collection" in `docs/test_page.md`:
   - Two person-like scripts (Chromium and Firefox) did the four tasks at the same time through a join link.
   - No event was lost, no field was unknown, and the sessions closed after the last task.
+- Ran the browser tests in WebKit (the engine of Safari) after the installation of its system libraries:
+  - The shop, the logger, the traps and the reverse CAPTCHA work in WebKit.
+  - Fixed the logger: the limit on fast events (mouse, wheel, scroll, window size) lost the last event of a series. Now the logger keeps it, so the log has the final position.
+  - Fixed two tests: copy and paste use Control on Linux, and Playwright sets `maxTouchPoints` only in Chromium.

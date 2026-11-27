@@ -180,10 +180,11 @@ Thus the logger adds about 2 µs to each pointer event and about 2 ms to a page 
 | A script sets a value or clicks | `trusted` is `false`, there is no `pointer_down` |
 | Copy and paste with the keyboard | `copy` and `paste` with the length, `input` with `insertFromPaste` |
 | A text with more than 300 characters | `value` has 300 characters, `len` has the full length |
-| Mouse, wheel, scroll, window size | At most one `pointer_move` in 50 ms, the coordinates are in the window |
+| Mouse, wheel, scroll, window size | The coordinates are in the window. The last mouse position and the last scroll position are in the log. |
+| A fast scroll | The last `scroll` event has the final position. `t` grows with `seq`. |
 | More than 100 events on one page, then 5 pages | No event is lost or doubled: `seq` has no gaps on each page |
 | Two tabs of one session | Each tab has its own page id |
-| A touch screen | `pointer_down` with `ptype` `touch` |
+| A touch screen | `pointer_down` with `ptype` `touch`. Playwright has no touch screen for Firefox, and it sets `maxTouchPoints` only in Chromium. |
 | A visitor without a session link | No request to `/api/events`, no shopping list |
 | A short network fault | The page loads the catalog again. The checkout shows an error and the second try works. |
 
