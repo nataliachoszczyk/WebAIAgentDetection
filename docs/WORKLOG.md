@@ -37,3 +37,8 @@
   - Four tasks in `src/shop/tasks.json`. Task 2 needs a comparison: the cheapest waterproof boot has no size 42.
   - The server (`src/shop/server.py`) uses only the Python standard library. It records the orders and the contact messages for valid sessions only.
   - Tests: unit tests of the server and one test in Chromium that does all four tasks.
+- Added the event logger (wad-004, #24). See `docs/test_page.md`:
+  - `src/shop/logger/logger.js` records pointer, click, key, input, scroll, focus and page events, and the browser fingerprint.
+  - The server endpoint `POST /api/events` accepts events only for a valid session and keeps only the known fields.
+  - The logger adds about 2 ms to a page load and about 2 µs to each pointer event.
+  - The browser test checks that the client events hold no typed text.

@@ -81,3 +81,35 @@ def test_order_is_logged_only_for_a_valid_session(shop):
 def test_bad_requests(shop):
     assert post(shop["url"] + "/api/order", {"items": []}).status == 400
     assert post(shop["url"] + "/api/unknown", {}).status == 404
+
+
+def test_python_files_are_not_public(shop):
+    assert get(shop["url"] + "/logger/logger.js").status == 200
+    assert get(shop["url"] + "/logger/schema.py").status == 404
+    assert get(shop["url"] + "/logger/__init__.py").status == 404
+
+
+def test_events_need_a_session(shop):
+    batch = {"events": [{"type": "click", "page": "p", "seq": 0, "t": 1.0}]}
+    assert post(shop["url"] + "/api/events", batch).status == 403
+    assert post(shop["url"] + "/api/events", batch, cookie="wad_sid=stranger").status == 403
+
+
+def test_events_are_cleaned_and_stored(shop):
+    code = shop["store"].new_session("human")
+    batch = {"events": [
+        {"type": "click", "page": "p", "seq": 0, "t": 1.0, "x": 5, "y": 6, "extra": "drop"},
+        {"type": "order", "page": "p", "seq": 1, "t": 2.0},
+        {"type": "key_down", "page": "p", "seq": 2, "t": 3.0, "key": "char"},
+    ]}
+    result = json.load(post(shop["url"] + "/api/events", batch, cookie=f"wad_sid={code}"))
+    assert result == {"accepted": 2, "rejected": 1}
+    events = session_events(shop, code)
+    assert [e["type"] for e in events] == ["click", "key_down"]
+    assert "extra" not in events[0] and events[0]["src"] == "client"
+
+
+def test_too_large_batch_is_rejected(shop):
+    code = shop["store"].new_session("human")
+    batch = {"events": [{"type": "scroll", "seq": i, "t": i} for i in range(501)]}
+    assert post(shop["url"] + "/api/events", batch, cookie=f"wad_sid={code}").status == 400

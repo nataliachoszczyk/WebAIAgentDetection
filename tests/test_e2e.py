@@ -1,6 +1,7 @@
 """Do the four study tasks in a real browser, as a simple scripted user."""
 
 import json
+import time
 
 import pytest
 
@@ -61,8 +62,37 @@ def test_all_tasks(shop, page):
     page.click("text=Send message")
     page.wait_for_selector(".notice.ok")
 
-    lines = (shop["data"] / "events" / f"{code}.jsonl").read_text().splitlines()
-    events = {e["type"]: e for e in map(json.loads, lines)}
-    assert {i["product"] for i in events["order"]["items"]} == {"ridge-runner", "alder-trek"}
-    assert events["order"]["fields"]["delivery"] == "standard"
-    assert events["contact"]["fields"]["order"] == order
+    page.goto(f"{shop['url']}/")  # The page change sends the last events.
+    events = wait_for_events(shop["data"] / "events" / f"{code}.jsonl", "contact")
+    by_type = {}
+    for event in events:
+        by_type.setdefault(event["type"], []).append(event)
+
+    order_event = by_type["order"][0]
+    assert {i["product"] for i in order_event["items"]} == {"ridge-runner", "alder-trek"}
+    assert order_event["fields"]["delivery"] == "standard"
+    assert by_type["contact"][0]["fields"]["order"] == order
+
+    # The logger records the behavior on all pages.
+    for kind in ("page_view", "env", "pointer_move", "click", "key_down", "input", "change", "focus", "shop"):
+        assert kind in by_type, kind
+    assert by_type["env"][0]["env"]["webdriver"] is True
+    assert all(e["trusted"] for e in by_type["click"])
+    assert {e["action"] for e in by_type["shop"]} >= {"view_item", "add_to_cart", "search", "filter", "sort"}
+
+    # The client events hold the length of a text, not the text.
+    client_text = json.dumps([e for e in events if e["src"] == "client"])
+    assert "Lipowa" not in client_text and "alex.novak" not in client_text
+    assert {e["key"] for e in by_type["key_down"]} <= {"char", "digit", "space", "Enter", "Backspace", "Shift", "Tab"}
+
+
+def wait_for_events(path, last_type, timeout=5.0):
+    """Wait until the file has an event of last_type and its size stays the same."""
+    end, size = time.time() + timeout, -1
+    while time.time() < end:
+        text = path.read_text() if path.exists() else ""
+        if f'"type": "{last_type}"' in text and len(text) == size:
+            break
+        size = len(text)
+        time.sleep(0.3)
+    return [json.loads(line) for line in path.read_text().splitlines()]
