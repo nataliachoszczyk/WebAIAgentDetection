@@ -16,6 +16,7 @@ class Store:
         self.codes_file = self.root / "sessions.jsonl"
         self.events_dir.mkdir(parents=True, exist_ok=True)
         self._lock = threading.Lock()
+        self._sessions_cache = (None, {})
 
     def new_session(self, label, model=None, note=None):
         """Make a session code. The label tells who operates: "human", "agent" or "bot"."""
@@ -29,9 +30,14 @@ class Store:
     def sessions(self):
         if not self.codes_file.exists():
             return {}
-        with self.codes_file.open(encoding="utf-8") as f:
-            records = [json.loads(line) for line in f if line.strip()]
-        return {r["session"]: r for r in records}
+        # The command line adds codes while the server runs. Read the file again only when it changes.
+        stat = self.codes_file.stat()
+        key = (stat.st_mtime_ns, stat.st_size)
+        if self._sessions_cache[0] != key:
+            with self.codes_file.open(encoding="utf-8") as f:
+                records = [json.loads(line) for line in f if line.strip()]
+            self._sessions_cache = (key, {r["session"]: r for r in records})
+        return self._sessions_cache[1]
 
     def is_valid(self, code):
         return bool(code) and code in self.sessions()
@@ -42,6 +48,8 @@ class Store:
         lines = []
         for event in events:
             record = {"v": FORMAT_VERSION, "session": session, "src": source, "recv": received}
+            if source == "server":
+                record["ts"] = received
             record.update(event)
             lines.append(json.dumps(record, ensure_ascii=False) + "\n")
         path = self.events_dir / f"{session}.jsonl"
