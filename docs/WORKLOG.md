@@ -42,3 +42,8 @@
   - The server endpoint `POST /api/events` accepts events only for a valid session and keeps only the known fields.
   - The logger adds about 2 ms to a page load and about 2 µs to each pointer event.
   - The browser test checks that the client events hold no typed text.
+- Added the traps (wad-005, #25). See `docs/test_page.md`:
+  - 7 traps of three kinds (honeypot, hidden instruction, canary link) in three channels (`dom`, `a11y`, `visual`).
+  - The `a11y` traps are for the measure of the cost for screen reader users (wad-023).
+  - The traps carry no visible marks in the DOM. The study scripts have neutral names and no comments.
+  - A canary page looks like any missing page. The server records the request.

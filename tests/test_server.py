@@ -84,9 +84,9 @@ def test_bad_requests(shop):
 
 
 def test_python_files_are_not_public(shop):
-    assert get(shop["url"] + "/logger/logger.js").status == 200
-    assert get(shop["url"] + "/logger/schema.py").status == 404
-    assert get(shop["url"] + "/logger/__init__.py").status == 404
+    assert get(shop["url"] + "/assets/js/analytics.js").status == 200
+    for path in ("/logger/schema.py", "/logger/logger.js", "/server.py", "/tasks.json", "/traps/traps.json"):
+        assert get(shop["url"] + path).status == 404, path
 
 
 def test_events_need_a_session(shop):
