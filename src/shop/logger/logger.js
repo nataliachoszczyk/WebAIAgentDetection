@@ -4,8 +4,8 @@
   "use strict";
 
   // Only study sessions are recorded. The session cookie is HttpOnly, so we look at the study flag.
-  if (!document.cookie.split("; ").includes("wad_study=1")) {
-    window.WAD = { log() {}, mark() {} };
+  if (!document.cookie.split("; ").includes("ps_visit=1")) {
+    window.psAnalytics = { log() {}, mark() {} };
     return;
   }
 
@@ -171,5 +171,5 @@
   setInterval(flush, FLUSH_MS);
 
   // Other parts of the page (shop, traps, reverse CAPTCHA) record their events here.
-  window.WAD = { log: (type, data) => emit(type, data), mark: (el, trap) => traps.set(el, trap) };
+  window.psAnalytics = { log: (type, data) => emit(type, data), mark: (el, trap) => traps.set(el, trap) };
 })();

@@ -176,16 +176,16 @@ details summary { cursor: pointer; font-weight: 600; }
 .order-check .terms-box { margin-bottom: 8px; max-height: 120px; }
 .order-check .terms-box p { margin: 0 0 8px; }
 
-/* Study panel */
+/* Shopping list with the tasks */
 /* The panel takes its own column, so that it never covers a part of the shop. */
-body.study-open { padding-right: 350px; }
-.study-panel { position: fixed; right: 14px; top: 120px; width: 320px; max-height: calc(100vh - 140px); overflow-y: auto; z-index: 50; background: #fffdf7; border: 1px solid #e3d9bf; border-radius: 14px; box-shadow: 0 12px 32px rgba(0, 0, 0, .14); font-size: .88rem; }
-.study-panel header { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid #efe6cc; font-weight: 700; }
-.study-panel header button { background: none; border: 0; cursor: pointer; color: var(--muted); font: inherit; }
-.study-panel ol { margin: 0; padding: 10px 14px 12px 32px; }
-.study-panel li { margin-bottom: 8px; }
-.study-panel.collapsed ol { display: none; }
-.study-panel.collapsed { width: auto; }
+body.list-open { padding-right: 350px; }
+.shopping-list { position: fixed; right: 14px; top: 120px; width: 320px; max-height: calc(100vh - 140px); overflow-y: auto; z-index: 50; background: #fffdf7; border: 1px solid #e3d9bf; border-radius: 14px; box-shadow: 0 12px 32px rgba(0, 0, 0, .14); font-size: .88rem; }
+.shopping-list header { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid #efe6cc; font-weight: 700; }
+.shopping-list header button { background: none; border: 0; cursor: pointer; color: var(--muted); font: inherit; }
+.shopping-list ol { margin: 0; padding: 10px 14px 12px 32px; }
+.shopping-list li { margin-bottom: 8px; }
+.shopping-list.collapsed ol { display: none; }
+.shopping-list.collapsed { width: auto; }
 
 @media (max-width: 900px) {
   .hero, .product, .layout-2, .catalog { grid-template-columns: 1fr; }

@@ -31,7 +31,7 @@ Run `.venv/bin/python -m pytest`. The browser tests do all four tasks in headles
 1. Start the server: `.venv/bin/python -m src.shop serve --port 8000`
 2. Make a session link for a person: `.venv/bin/python -m src.shop new-session --label human`
 3. Make a session link for an agent: `.venv/bin/python -m src.shop new-session --label agent --model <model id>`
-4. Open the link in a browser. The session starts on the study page.
+4. Open the link in a browser. The session starts on the task page.
 
 The server writes the logs into `data/shop/`. Git does not keep this folder. For a public HTTPS address, see "Hosting" in [`docs/test_page.md`](docs/test_page.md).
 

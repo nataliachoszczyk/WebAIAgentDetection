@@ -5,7 +5,7 @@
   "use strict";
 
   const SLOT = "#checkout-extra";
-  const log = (data) => window.WAD?.log("captcha", data);
+  const log = (data) => window.psAnalytics?.log("captcha", data);
 
   const random = (n) => crypto.getRandomValues(new Uint32Array(1))[0] % n;
   const LETTERS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
