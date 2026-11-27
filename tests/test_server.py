@@ -183,3 +183,33 @@ def test_session_continues_and_ends_after_the_contact_message(shop):
 
 def test_tasks_are_not_done_without_a_session(shop):
     assert json.load(get(shop["url"] + "/api/tasks"))["done"] is False
+
+
+def test_join_link_gives_each_browser_its_own_session(shop):
+    import time
+    store, url = shop["store"], shop["url"]
+    secret = store.new_join("human", 2, until=int(time.time() * 1000) + 60_000)
+
+    first = get(f"{url}/join/{secret}")
+    assert first.status == 302 and first.headers["Location"] == "/start.html"
+    code = first.headers["Set-Cookie"].split("ps_sid=")[1].split(";")[0]
+    assert store.sessions()[code]["join"] == secret and store.sessions()[code]["label"] == "human"
+    # The same browser opens the link again: the same session, no second place of the limit.
+    again = get(f"{url}/join/{secret}", cookie=f"ps_sid={code}")
+    assert again.headers["Location"] == "/" and len(store.join_sessions(secret)) == 1
+
+    second = get(f"{url}/join/{secret}")
+    assert second.status == 302 and len(store.join_sessions(secret)) == 2
+    full = get(f"{url}/join/{secret}")
+    assert full.status == 410 and b"no longer active" in full.read()
+
+    store.mark(code, "ordered")
+    store.mark(code, "closed")
+    assert b"All tasks are done" in get(f"{url}/join/{secret}", cookie=f"ps_sid={code}").read()
+    assert get(f"{url}/join/unknown").status == 404
+
+
+def test_expired_join_link_is_closed(shop):
+    import time
+    secret = shop["store"].new_join("human", 10, until=int(time.time() * 1000) - 1)
+    assert get(f"{shop['url']}/join/{secret}").status == 410

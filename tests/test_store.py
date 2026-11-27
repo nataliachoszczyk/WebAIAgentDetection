@@ -62,3 +62,45 @@ def test_server_events_get_a_time(tmp_path):
     store.append(code, [{"type": "order", "order": "PS-1"}], source="server")
     line = json.loads((tmp_path / "events" / f"{code}.jsonl").read_text())
     assert line["ts"] == line["recv"]
+
+
+def test_join_link_has_a_limit_and_an_end(tmp_path):
+    import time
+    store = Store(tmp_path)
+    secret = store.new_join("human", 2, until=int(time.time() * 1000) + 60_000, note="friends")
+    first, _ = store.join_session(secret)
+    second, _ = store.join_session(secret)
+    assert first != second
+    assert store.join_session(secret) == (None, "full")
+    assert store.sessions()[first]["label"] == "human" and store.sessions()[first]["join"] == secret
+    assert store.join_session("unknown") == (None, "missing")
+    old = store.new_join("human", 5, until=int(time.time() * 1000) - 1)
+    assert store.join_session(old) == (None, "expired")
+
+
+def test_join_link_keeps_the_limit_under_parallel_visits(tmp_path):
+    import threading
+    import time
+    store = Store(tmp_path)
+    secret = store.new_join("human", 5, until=int(time.time() * 1000) + 60_000)
+    codes = []
+    threads = [threading.Thread(target=lambda: codes.append(store.join_session(secret)[0])) for _ in range(30)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+    assert len([c for c in codes if c]) == 5
+    assert len(store.join_sessions(secret)) == 5
+
+
+def test_command_line(tmp_path):
+    import subprocess
+    import sys
+    run = lambda *args: subprocess.run([sys.executable, "-m", "src.shop", *args, "--data-dir", str(tmp_path)],
+                                       check=True, capture_output=True, text=True).stdout
+    link = run("new-join", "--label", "human", "--max", "3", "--until", "2099-12-31", "--base-url", "https://x.example")
+    assert link.startswith("https://x.example/join/") and "until 2099-12-31 23:59" in link
+    sessions = run("new-session", "--label", "agent", "--model", "m1", "--count", "2").split()
+    assert len(sessions) == 2 and all("/s/" in s for s in sessions)
+    report = run("status")
+    assert "agent           2" in report and "human: 0/3 used" in report and "(open)" in report
