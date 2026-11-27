@@ -20,3 +20,10 @@
   - In the task session, `MODEL_PROXY_URL` already ends with `/openapi`.
   - The session runs Python 3.12. `navigator.webdriver` is `true` in headless Chromium from Playwright.
 - Added the general rules of the course project to `docs/task.md` and `docs/task_eng.md`: report format, grading criteria, the deadline (11 January 2027, 16:00).
+
+## 2026-11-27
+
+- Decided the hosting of the test page (wad-001, #21). See `docs/test_page.md`:
+  - One Python server (standard library only) serves the page and writes the logs as JSON Lines files.
+  - People and agents use the same public HTTPS address from a Cloudflare quick tunnel.
+  - Each session starts from a link with a session code. The server records events only for a valid code.
