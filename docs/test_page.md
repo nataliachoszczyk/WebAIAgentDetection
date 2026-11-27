@@ -66,6 +66,23 @@ Check of the tunnel (2026-11-27, `cloudflared` 2026.11.2):
 - In the shop container, connections to the internet failed, `/bin/sh` did not exist and the host files were not visible.
 - The server did not answer HEAD requests (status 501). A real web server answers them, so the server now answers HEAD like GET without the body.
 
+Full check of the collection (2026-11-28):
+
+1. The containers started, and a join link for two people was made in the shop container.
+2. Two scripts that act like people did the four tasks at the same time through the tunnel: one in Chromium, one in Firefox. The scripts move the mouse in steps, type with delays and correct a typo.
+3. A third visitor got "This link is not active" (status 410).
+4. `status` showed both sessions as done. The logs were copied with `docker compose cp`.
+
+Results for each of the two sessions:
+
+- 10 pages and about 950 events. On each page, `seq` had no gaps, the first event was `page_view` and the last page events arrived (`page_hide`).
+- No event had an unknown field. No trap and no canary fired.
+- The last `value` of each form field was equal to the typed text. The typo and its correction were in the `input` events.
+- The three reverse CAPTCHA checks were correct, with the key counts and the scroll of the terms box.
+- The order had the two correct products. The session closed after the contact message, and no event arrived later.
+
+The `ms` field of the reverse CAPTCHA is the same for the three checks, because it is the time to the submit. The time of each check is in the `input` events of its field.
+
 ## The shop (wad-003)
 
 The shop "Pace & Sole" sells 12 models of shoes in four categories: `running`, `hiking`, `casual` and `formal`. It has the usual parts of a small web shop:

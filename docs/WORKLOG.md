@@ -84,3 +84,6 @@
   - On a narrow screen (below 1100 px), the task list is now a bar at the bottom. Before, it took 350 px of the width, and the shop did not fit on a phone.
   - The label of the terms check box had a space before the full stop.
   - New tests check the label and the narrow screen.
+- Did a full check of the collection through Docker and the tunnel (wad-001, #21). See "Full check of the collection" in `docs/test_page.md`:
+  - Two person-like scripts (Chromium and Firefox) did the four tasks at the same time through a join link.
+  - No event was lost, no field was unknown, and the sessions closed after the last task.
