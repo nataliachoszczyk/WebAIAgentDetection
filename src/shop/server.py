@@ -66,6 +66,10 @@ class ShopHandler(BaseHTTPRequestHandler):
             return self.send_not_found()
         return self.send_static(url.path)
 
+    def do_HEAD(self):
+        # A usual web server answers HEAD with the headers of GET. A 501 answer is a sign of a test server.
+        self.do_GET()
+
     def do_POST(self):
         url = urlsplit(self.path)
         handlers = {
@@ -162,7 +166,8 @@ class ShopHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(payload)))
         self.send_header("Cache-Control", "no-store")
         self.end_headers()
-        self.wfile.write(payload)
+        if self.command != "HEAD":
+            self.wfile.write(payload)
 
     def send_not_found(self):
         """Send the 404 page of the shop. A canary page gets the same answer as a page that does not exist."""
@@ -190,7 +195,8 @@ class ShopHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(payload)))
         self.send_header("Cache-Control", "no-cache")
         self.end_headers()
-        self.wfile.write(payload)
+        if self.command != "HEAD":
+            self.wfile.write(payload)
 
     def log_message(self, format, *args):
         # The default access log prints the IP address of each visitor. We do not keep it.

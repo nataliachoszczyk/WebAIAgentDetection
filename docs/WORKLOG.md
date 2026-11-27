@@ -54,3 +54,7 @@
 - Finished M1 (Test page, #49):
   - Updated `README.md` with the install, the tests and the run of the shop.
   - The server events now have the field `ts`. The store reads the session file again only when it changes.
+- Checked the Cloudflare quick tunnel (wad-001, #21). See "Hosting" in `docs/test_page.md`:
+  - The four browser tests passed through the public tunnel address. The logs had all event types.
+  - The tunnel adds about 0.2 s to each request. The delay is the same for people and agents.
+  - The server now answers HEAD requests like a usual web server.

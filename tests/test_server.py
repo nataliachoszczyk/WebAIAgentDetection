@@ -123,3 +123,14 @@ def test_bad_content_length_gives_400(shop):
     connection.putheader("Content-Length", "abc")
     connection.endheaders()
     assert connection.getresponse().status == 400
+
+
+def test_head_gives_the_headers_of_get(shop):
+    import http.client
+    host, port = shop["url"].removeprefix("http://").split(":")
+    connection = http.client.HTTPConnection(host, int(port))
+    connection.request("HEAD", "/index.html")
+    response = connection.getresponse()
+    assert response.status == 200
+    assert int(response.getheader("Content-Length")) > 0
+    assert response.read() == b""
