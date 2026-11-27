@@ -33,7 +33,7 @@ CLIENT_EVENTS = {
     "resize": ("w", "h"),
     "page_hide": (),
     "trap": ("trap", "action", "target"),
-    "captcha": ("captcha", "ok", "ms", "len", "keys", "pasted"),
+    "captcha": ("captcha", "ok", "ms", "len", "keys", "pasted", "seen", "scrolled"),
     "shop": ("action", "product", "size", "color", "qty", "value"),
 }
 

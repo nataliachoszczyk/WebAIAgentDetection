@@ -76,7 +76,7 @@ Events from the browser:
 | `resize` | `w`, `h` | The window size changes. At most one event in 250 ms. |
 | `page_hide` | | The page closes or the user goes to a different page. |
 | `trap` | `trap`, `action`, `target` | The user touches a trap (see `docs/test_page.md`). `action` is `focus`, `input`, `click`, `value` or `follow`. |
-| `captcha` | `captcha`, `ok`, `ms`, `len`, `keys`, `pasted` | The user completes a reverse CAPTCHA. `ms` is the time from the first view, `keys` is the number of key presses. |
+| `captcha` | `captcha`, `ok`, `ms`, `len`, `keys`, `pasted`, `seen`, `scrolled` | The user sends the checkout form with the reverse CAPTCHA. There is one event for each check and each attempt. `ms` is the time from the first view of the check (`seen` is `true`), or from the page load (`seen` is `false`). `keys` is the number of key presses in the field. `scrolled` is the part of the terms box that the user scrolled (0 to 1), only for `terms-code`. |
 | `shop` | `action`, `product`, `size`, `color`, `qty`, `value` | A shop action: `view_item`, `add_to_cart`, `remove_from_cart`, `search`, `filter`, `sort`, `begin_checkout`, `apply_code`. |
 
 The `env` object has these fields: `ua`, `webdriver`, `languages`, `platform`, `screen`, `window`, `outer`, `dpr`, `tz`, `cores`, `memory`, `touch`, `plugins`, `webgl_vendor`, `webgl_renderer`, `chrome`.

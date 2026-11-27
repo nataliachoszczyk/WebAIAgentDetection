@@ -1,6 +1,7 @@
 """Do the four study tasks in a real browser, as a simple scripted user."""
 
 import json
+import re
 import time
 
 import pytest
@@ -49,6 +50,7 @@ def test_all_tasks(shop, page):
                          "postcode": "80-001", "city": "Gdansk"}.items():
         page.fill(f"#{field}", value)
     page.select_option("#country", "PL")
+    solve_order_check(page)
     page.check("#terms")
     page.click("#place-order")
     order = page.inner_text("#order-number")
@@ -88,6 +90,25 @@ def test_all_tasks(shop, page):
     client_text = json.dumps([e for e in events if e["src"] == "client"])
     assert "Lipowa" not in client_text and "alex.novak" not in client_text
     assert {e["key"] for e in by_type["key_down"]} <= {"char", "digit", "space", "Enter", "Backspace", "Shift", "Tab"}
+
+    # Playwright fill() sets a value without key presses.
+    checks = {e["captcha"]: e for e in by_type["captcha"]}
+    assert set(checks) == {"retype-code", "terms-code", "multiply"}
+    assert all(c["ok"] and c["keys"] == 0 and not c["pasted"] for c in checks.values())
+
+
+def solve_order_check(page, type_keys=False):
+    """Read the answers of the order security check from the page, as an agent can."""
+    reference = page.inner_text(".order-check .reference")
+    code = re.search(r"confirmation code for this order is (\d{4})", page.inner_text(".terms-box")).group(1)
+    a, b = map(int, re.search(r"what is (\d+) × (\d+)", page.inner_text(".order-check")).groups())
+    for selector, value in (("#check-reference", reference), ("#check-terms", code), ("#check-product", str(a * b))):
+        if type_keys:
+            page.fill(selector, "")
+            page.click(selector)
+            page.keyboard.type(value, delay=30)
+        else:
+            page.fill(selector, value)
 
 
 def wait_for_events(path, last_type, timeout=5.0):
@@ -148,6 +169,7 @@ def test_a_naive_bot_triggers_the_traps(shop, page):
         }
     }""")
     page.fill("#notes", "BLUEBIRD")
+    solve_order_check(page)
     page.select_option("#country", "PL")
     page.check("#terms")
     page.click("#place-order")
@@ -161,3 +183,36 @@ def test_a_naive_bot_triggers_the_traps(shop, page):
     assert order["fields"]["company_website"] == "x"
     untrusted = [e for e in events if e["type"] == "input" and e.get("target") == "trap:honeypot-checkout"]
     assert untrusted and not untrusted[0]["trusted"]
+
+
+def test_order_check_blocks_wrong_answers_and_records_the_work(shop, page):
+    code = shop["store"].new_session("bot", note="order check")
+    page.goto(f"{shop['url']}/s/{code}?next=/product.html?id=tempo-glide")
+    page.click("[data-size='40']")
+    page.click("#add-to-cart")
+    page.goto(f"{shop['url']}/checkout.html")
+    for field, value in {"email": "alex.novak@example.com", "name": "Alex Novak", "street": "Lipowa 12",
+                         "postcode": "80-001", "city": "Gdansk"}.items():
+        page.fill(f"#{field}", value)
+    page.select_option("#country", "PL")
+    page.check("#terms")
+
+    page.fill("#check-reference", "WRONG")
+    page.click("#place-order")
+    assert page.locator(".order-check .field.error").count() == 3
+    assert page.url.endswith("/checkout.html")
+
+    page.locator(".terms-box").evaluate("box => box.scrollTop = box.scrollHeight")
+    solve_order_check(page, type_keys=True)
+    page.click("#place-order")
+    page.wait_for_selector("#order-number")
+    page.goto(f"{shop['url']}/")
+
+    events = wait_for_events(shop["data"] / "events" / f"{code}.jsonl", "order")
+    attempts = [e for e in events if e["type"] == "captcha"]
+    assert len(attempts) == 6
+    first, second = attempts[:3], attempts[3:]
+    assert not any(e["ok"] for e in first) and all(e["ok"] for e in second)
+    typed = {e["captcha"]: e for e in second}
+    assert typed["retype-code"]["keys"] >= 19 and typed["retype-code"]["seen"]
+    assert typed["terms-code"]["scrolled"] == 1
