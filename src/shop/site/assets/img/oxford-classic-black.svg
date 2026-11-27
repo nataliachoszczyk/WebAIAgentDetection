@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 340" role="img"><title>Oxford Classic, Black</title>
+<ellipse cx="244" cy="300" rx="196" ry="13" fill="#000" opacity="0.10"/>
+<path d="M70 256 L70 288 L138 288 L138 266 L404 266 Q432 264 434 250 L434 244 L150 250 Z" fill="#151515"/>
+<path d="M72 254 C68 222 80 198 110 190 L200 178 C232 172 264 176 292 186 C342 200 404 214 426 230 C438 238 436 250 426 252 Z" fill="#1f1f22"/>
+<path d="M330 196 C360 204 404 214 426 230 C438 238 436 250 426 252 L340 252 C334 232 332 212 330 196 Z" fill="#1b1b1d"/>
+<path d="M330 196 C334 214 336 234 340 252" stroke="#0f0f10" stroke-width="3" fill="none"/>
+<path d="M200 178 C214 196 250 200 286 186" stroke="#0f0f10" stroke-width="3" fill="none"/>
+<g stroke="#838385" stroke-width="3" stroke-linecap="round"><path d="M222 186 L240 182"/><path d="M230 192 L250 186"/><path d="M240 196 L262 190"/></g>
+<path d="M74 252 C70 226 80 204 104 194" stroke="#575759" stroke-width="4" fill="none" opacity="0.6"/>
+</svg>

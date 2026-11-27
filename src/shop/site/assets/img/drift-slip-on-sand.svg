@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 340" role="img"><title>Drift Slip-On, Sand</title>
+<ellipse cx="244" cy="300" rx="196" ry="13" fill="#000" opacity="0.10"/>
+<path d="M56 252 L56 270 Q56 284 74 284 L400 284 Q428 284 428 262 L428 252 Z" fill="#f3ede2"/>
+<path d="M56 266 L428 266" stroke="#cec9c0" stroke-width="3" stroke-dasharray="6 6"/>
+<path d="M64 254 C60 220 70 196 96 186 C140 176 180 170 216 166 C250 162 280 170 320 184 C368 200 412 214 426 236 C430 244 430 250 428 254 Z" fill="#d8c3a0"/>
+<path d="M150 178 C176 158 214 152 246 164 L240 178 C214 170 184 172 160 186 Z" fill="#7a5a3a"/>
+<path d="M330 188 C372 202 414 218 426 244" stroke="#a29278" stroke-width="3" fill="none"/>
+<path d="M66 250 C62 222 70 200 90 190" stroke="#978870" stroke-width="5" fill="none" stroke-linecap="round"/>
+</svg>
