@@ -72,3 +72,7 @@
   - New tests in `tests/test_logger.py`: typing, `fill`, script events, copy and paste, mouse, two tabs, touch, lost events, no session. See "Tests of the logger" in `docs/test_page.md`.
   - The browser tests run in Chromium, Firefox and WebKit. WebKit needs system libraries.
   - The pages load the catalog and the tasks again after a short network fault. The checkout and the contact form show an error after a network fault.
+- Added the start and the end of a session (wad-003, #23). See "Start and end of a session" in `docs/test_page.md`:
+  - A second open of the session link continues the session with the same cart.
+  - The contact message after the order ends the session. After 60 s, the server refuses the events and the logger stops.
+  - After the end, the link shows "All tasks are done", or "This link is not active" in a different browser.

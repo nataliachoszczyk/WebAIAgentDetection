@@ -39,7 +39,7 @@ CLIENT_EVENTS = {
 
 # Events that the server writes. The browser cannot send them.
 SERVER_EVENTS = {
-    "session_start": ("ua",),
+    "session_start": ("ua", "again"),
     "canary": ("trap",),
     "order": ("order", "items", "total", "fields"),
     "contact": ("fields",),

@@ -110,6 +110,14 @@ The pages use plain HTML, CSS and JavaScript modules. There is no build step.
 
 For an agent, give the model id: `python -m src.shop new-session --label agent --model <model id>`. For a public address, give it with `--base-url`.
 
+### Start and end of a session
+
+1. The first open of the session link sets the cookies and shows the task page (`/start.html`).
+2. If the person opens the link again before the end, the session continues on the home page with the same cart.
+3. The contact message after the order is the last task. The server then closes the session, and the shopping list tells that all tasks are done.
+4. For 60 s after the end, the server takes the last events of the open page. Then it refuses the events, and the logger stops.
+5. After the end, the link shows "All tasks are done" in the same browser. In a different browser, it shows "This link is not active" (status 410).
+
 ## The event logger (wad-004)
 
 `src/shop/logger/logger.js` records the events of `docs/log_format.md`. Each page loads it from `/assets/js/analytics.js`.

@@ -254,3 +254,16 @@ def test_no_events_without_a_session(shop, browser):
     assert page.evaluate("typeof window.psAnalytics.log") == "function"
     assert list((shop["data"] / "events").glob("*.jsonl")) == []
     context.close()
+
+
+def test_logger_stops_after_the_end_of_the_session(shop, browser):
+    s = Session(shop, browser, "/")
+    shop["store"].mark(s.code, "ordered")
+    shop["store"].mark(s.code, "closed")
+    shop["store"].grace_ms = 0
+    sent = []
+    s.page.on("request", lambda r: sent.append(r.url) if "/api/events" in r.url else None)
+    for x in range(10):
+        s.page.mouse.move(100 + 50 * x, 300)
+        time.sleep(0.7)
+    assert len(sent) == 1  # The server refused the first batch, so the logger sent no more.
