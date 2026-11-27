@@ -76,3 +76,7 @@
   - A second open of the session link continues the session with the same cart.
   - The contact message after the order ends the session. After 60 s, the server refuses the events and the logger stops.
   - After the end, the link shows "All tasks are done", or "This link is not active" in a different browser.
+- Added join links for groups of people (wad-001, #21). See "Links for a group" in `docs/test_page.md`:
+  - `/join/<secret>` gives each new browser its own session, up to a limit and until a date.
+  - The same browser keeps its session. Parallel visits cannot pass the limit.
+  - New commands: `new-join` and `status`.

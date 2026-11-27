@@ -281,3 +281,24 @@ def test_a_short_network_fault(shop, page):
     assert order and page.is_enabled("#place-order")
     page.click("#place-order")
     page.wait_for_selector("#order-number")
+
+
+def test_join_link_in_two_browsers(shop, page):
+    store = shop["store"]
+    secret = store.new_join("human", 2, until=int(time.time() * 1000) + 60_000)
+    page.goto(f"{shop['url']}/join/{secret}")
+    assert page.locator("#task-list li").count() == 4
+    page.click("#start")
+    page.wait_for_selector("#shopping-list")
+
+    other = page.context.browser.new_context().new_page()
+    other.goto(f"{shop['url']}/join/{secret}")
+    assert other.locator("#task-list li").count() == 4
+    codes = {c["value"] for p in (page, other) for c in p.context.cookies() if c["name"] == "ps_sid"}
+    assert len(codes) == 2 and codes == {s["session"] for s in store.join_sessions(secret)}
+
+    page.goto(f"{shop['url']}/join/{secret}")  # the same browser again: the same session
+    assert page.url.endswith("/") and len(store.join_sessions(secret)) == 2
+    third = page.context.browser.new_context().new_page()
+    third.goto(f"{shop['url']}/join/{secret}")
+    assert "This link is not active" in third.inner_text("h1")

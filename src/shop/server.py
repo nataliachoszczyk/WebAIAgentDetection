@@ -55,6 +55,8 @@ class ShopHandler(BaseHTTPRequestHandler):
         url = urlsplit(self.path)
         if url.path.startswith("/s/"):
             return self.start_session(url.path[3:], parse_qs(url.query))
+        if url.path.startswith("/join/"):
+            return self.join(url.path[6:], parse_qs(url.query))
         if url.path == "/api/tasks":
             tasks = json.loads(TASKS_FILE.read_text(encoding="utf-8"))
             # The expected answers are for the analysis only, not for the page.
@@ -120,6 +122,19 @@ class ShopHandler(BaseHTTPRequestHandler):
         self.send_header("Set-Cookie", f"{SESSION_COOKIE}={code}; Path=/; HttpOnly; SameSite=Lax")
         self.send_header("Set-Cookie", f"{STUDY_COOKIE}=1; Path=/; SameSite=Lax")
         self.end_headers()
+
+    def join(self, secret, query):
+        """A join link for a group: each new browser gets its own session."""
+        if secret not in self.store.joins():
+            return self.send_not_found()
+        own = self.cookie_session()
+        # The same browser keeps its session. It does not take a second place of the limit.
+        if own and self.store.sessions().get(own, {}).get("join") == secret:
+            return self.start_session(own, query)
+        code, _ = self.store.join_session(secret)
+        if code is None:
+            return self.send_file(SITE_DIR / "closed.html", HTTPStatus.GONE)
+        return self.start_session(code, query)
 
     def record(self, events):
         session = self.session()

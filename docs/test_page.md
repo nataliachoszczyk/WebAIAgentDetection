@@ -44,9 +44,13 @@ To make the shop public, do these steps:
 
 1. Start the containers: `docker compose up -d --build`
 2. Find the public address: `docker compose logs tunnel | grep trycloudflare.com`
-3. Make the session links: `docker compose exec shop /usr/bin/python3 -m src.shop new-session --label human --base-url https://<name>.trycloudflare.com`
-4. After the collection, copy the logs to the laptop: `docker compose cp shop:/app/data/shop/. data/shop/`
-5. Stop the containers: `docker compose down`
+3. Make one link for a group of people: `docker compose exec shop /usr/bin/python3 -m src.shop new-join --label human --max 15 --until <YYYY-MM-DD> --base-url https://<name>.trycloudflare.com`
+4. Send the link to the group. For one person or one agent run, make a session link with `new-session` (see "Run the shop").
+5. See the progress: `docker compose exec shop /usr/bin/python3 -m src.shop status`
+6. After the collection, copy the logs to the laptop: `docker compose cp shop:/app/data/shop/. data/shop/`
+7. Stop the containers: `docker compose down`
+
+The address of the quick tunnel changes at each start. Thus make a new link after each start of the containers.
 
 Do not use `docker compose down -v` before you copy the logs. The option `-v` deletes the log volume.
 
@@ -90,7 +94,7 @@ A session starts on the task page (`/start.html`). This page shows the tasks and
 
 | Path | Content |
 |---|---|
-| `src/shop/__main__.py` | The command line: `serve` and `new-session` |
+| `src/shop/__main__.py` | The command line: `serve`, `new-session`, `new-join` and `status` |
 | `src/shop/server.py` | The HTTP server: static files, session links, the order API and the contact API |
 | `src/shop/store.py` | The log store (see `docs/log_format.md`) |
 | `src/shop/tasks.json` | The tasks and the expected answers |
@@ -109,6 +113,16 @@ The pages use plain HTML, CSS and JavaScript modules. There is no build step.
 3. Open the link in a browser.
 
 For an agent, give the model id: `python -m src.shop new-session --label agent --model <model id>`. For a public address, give it with `--base-url`.
+
+### Links for a group (join links)
+
+A join link lets a group of people use one link, for example in a group chat. Each new browser that opens the link gets its own session.
+
+- Make the link: `python -m src.shop new-join --label human --max 15 --until 2026-12-20`. The link works until the end of the day `--until` (default: 7 days).
+- The link makes at most `--max` sessions. After the limit or the date, it shows "This link is not active" (status 410).
+- The same browser keeps its session and takes only one place of the limit.
+- `python -m src.shop status` shows the number of sessions of each label and the use of each join link.
+- Session links (`/s/<code>`) still work. Use them for one person next to you or for one agent run.
 
 ### Start and end of a session
 

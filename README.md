@@ -33,6 +33,8 @@ Run `.venv/bin/python -m pytest`. The browser tests do all four tasks in headles
 3. Make a session link for an agent: `.venv/bin/python -m src.shop new-session --label agent --model <model id>`
 4. Open the link in a browser. The session starts on the task page.
 
+To give one link to a group of people, make a join link: `.venv/bin/python -m src.shop new-join --label human --max 15 --until <YYYY-MM-DD>`. Each new browser gets its own session. To see the progress, run `.venv/bin/python -m src.shop status`.
+
 The server writes the logs into `data/shop/`. Git does not keep this folder. For a public HTTPS address, see "Hosting" in [`docs/test_page.md`](docs/test_page.md).
 
 To load all logs into one pandas DataFrame, use `src.shop.store.load_events("data/shop")`.
