@@ -113,3 +113,13 @@ def test_too_large_batch_is_rejected(shop):
     code = shop["store"].new_session("human")
     batch = {"events": [{"type": "scroll", "seq": i, "t": i} for i in range(501)]}
     assert post(shop["url"] + "/api/events", batch, cookie=f"wad_sid={code}").status == 400
+
+
+def test_bad_content_length_gives_400(shop):
+    import http.client
+    host, port = shop["url"].removeprefix("http://").split(":")
+    connection = http.client.HTTPConnection(host, int(port))
+    connection.putrequest("POST", "/api/order")
+    connection.putheader("Content-Length", "abc")
+    connection.endheaders()
+    assert connection.getresponse().status == 400
