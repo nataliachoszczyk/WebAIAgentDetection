@@ -79,7 +79,7 @@ Events from the browser:
 | `captcha` | `captcha`, `ok`, `ms`, `len`, `keys`, `pasted` | The user completes a reverse CAPTCHA. `ms` is the time from the first view, `keys` is the number of key presses. |
 | `shop` | `action`, `product`, `size`, `color`, `qty`, `value` | A shop action: `view_item`, `add_to_cart`, `remove_from_cart`, `search`, `filter`, `sort`, `begin_checkout`, `apply_code`. |
 
-The `env` object has these fields: `ua`, `webdriver`, `languages`, `platform`, `screen`, `window`, `dpr`, `tz`, `cores`, `memory`, `touch`, `plugins`, `webgl_vendor`, `webgl_renderer`, `chrome`.
+The `env` object has these fields: `ua`, `webdriver`, `languages`, `platform`, `screen`, `window`, `outer`, `dpr`, `tz`, `cores`, `memory`, `touch`, `plugins`, `webgl_vendor`, `webgl_renderer`, `chrome`.
 
 Events from the server:
 

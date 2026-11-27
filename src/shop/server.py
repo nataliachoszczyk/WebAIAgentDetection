@@ -9,6 +9,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 
+from .logger.schema import MAX_BATCH, InvalidEvent, clean_client_event
 from .store import Store
 
 PACKAGE_DIR = Path(__file__).resolve().parent
@@ -16,7 +17,10 @@ PACKAGE_DIR = Path(__file__).resolve().parent
 # URL prefix -> folder. Each part of the page keeps its own folder.
 MOUNTS = {
     "/": PACKAGE_DIR / "site",
+    "/logger/": PACKAGE_DIR / "logger",
 }
+# Only these files are public. Python files in the same folders stay private.
+PUBLIC_SUFFIXES = {".html", ".css", ".js", ".json", ".svg", ".png", ".ico"}
 
 TASKS_FILE = PACKAGE_DIR / "tasks.json"
 SESSION_COOKIE = "wad_sid"
@@ -31,8 +35,9 @@ def resolve_static(url_path):
             root = MOUNTS[prefix]
             relative = url_path[len(prefix):] or "index.html"
             candidate = (root / relative).resolve()
-            if candidate.is_relative_to(root) and candidate.is_file():
+            if candidate.is_relative_to(root) and candidate.is_file() and candidate.suffix in PUBLIC_SUFFIXES:
                 return candidate
+            return None
     return None
 
 
@@ -59,6 +64,7 @@ class ShopHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         url = urlsplit(self.path)
         handlers = {
+            "/api/events": self.receive_events,
             "/api/order": self.place_order,
             "/api/contact": self.send_contact,
         }
@@ -97,6 +103,22 @@ class ShopHandler(BaseHTTPRequestHandler):
         session = self.session()
         if session:
             self.store.append(session, events, source="server")
+
+    def receive_events(self, body):
+        session = self.session()
+        if session is None:
+            return self.send_json({"error": "no session"}, HTTPStatus.FORBIDDEN)
+        raw = body.get("events")
+        if not isinstance(raw, list) or len(raw) > MAX_BATCH:
+            return self.send_json({"error": "bad batch"}, HTTPStatus.BAD_REQUEST)
+        events = []
+        for item in raw:
+            try:
+                events.append(clean_client_event(item))
+            except InvalidEvent:
+                continue
+        self.store.append(session, events)
+        return self.send_json({"accepted": len(events), "rejected": len(raw) - len(events)})
 
     # Shop API ------------------------------------------------------------
 

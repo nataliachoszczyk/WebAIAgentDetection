@@ -73,3 +73,23 @@ The pages use plain HTML, CSS and JavaScript modules. There is no build step.
 3. Open the link in a browser.
 
 For an agent, give the model id: `python -m src.shop new-session --label agent --model <model id>`. For a public address, give it with `--base-url`.
+
+## The event logger (wad-004)
+
+`src/shop/logger/logger.js` records the events of `docs/log_format.md`. Each page loads it from `/logger/logger.js`.
+
+- The logger records only study sessions: the session link sets the cookie `wad_study=1`. Other visitors send no events.
+- The listeners are passive. They never stop or change an event, so the page works the same with the logger.
+- The logger sends the events in batches to `POST /api/events`: every 2 s, at 100 events and at the end of each page (`sendBeacon`).
+- The server accepts events only for a valid session cookie. It keeps only the known fields of each event type and drops unknown event types.
+- The server serves only HTML, CSS, JavaScript, JSON and image files. The Python files in the same folders stay private.
+- The shop, the traps and the reverse CAPTCHA record their own events through `window.WAD.log(type, data)`.
+
+Cost of the logger, measured in headless Chromium on a laptop (median of 5 page loads):
+
+| Measure | Without the logger | With the logger |
+|---|---|---|
+| Page load (`loadEventEnd`) | 65 ms | 67 ms |
+| 5000 pointer events | 21.0 ms | 31.9 ms |
+
+Thus the logger adds about 2 µs to each pointer event and about 2 ms to a page load. A person cannot see this difference.
