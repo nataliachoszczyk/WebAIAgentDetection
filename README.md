@@ -38,3 +38,30 @@ To give one link to a group of people, make a join link: `.venv/bin/python -m sr
 The server writes the logs into `data/shop/`. Git does not keep this folder. For a public HTTPS address, see "Hosting" in [`docs/test_page.md`](docs/test_page.md).
 
 To load all logs into one pandas DataFrame, use `src.shop.store.load_events("data/shop")`.
+
+## Traces of agents and people
+
+The agent does the four tasks through a model API. People do the same tasks through the same public address.
+
+- The agent, its tools and its runs: [`docs/agent.md`](docs/agent.md)
+- Rules and limits for the agents of the study: [`docs/agent_rules.md`](docs/agent_rules.md)
+- Collection of human traces: [`docs/collection.md`](docs/collection.md)
+- The sessions of the study and the check of the logs: [`docs/traces.md`](docs/traces.md)
+- Code: [`src/agent/`](src/agent/), [`src/traces.py`](src/traces.py)
+
+### Run the agent
+
+The agent needs `OPENROUTER_API_KEY` in `.env`.
+
+1. Start the public shop: `docker compose up -d --build`. Find its address in `docker compose logs tunnel`.
+2. Check the spend of the key: `.venv/bin/python -m src.agent spend`
+3. Run the agent: `.venv/bin/python -m src.agent run --model anthropic/claude-haiku-5.5 --base-url https://<name>.trycloudflare.com --runs 3 --note wad-009`
+4. Copy the logs and stop the shop: `docker compose cp shop:/app/data/shop/. data/shop/`, then `docker compose down`.
+
+Options of the run: `--browser plain|hidden`, `--motion direct|human`, `--effort`, `--max-steps`, `--max-cost`, `--budget`. See [`docs/agent_rules.md`](docs/agent_rules.md).
+
+### Check the logs
+
+1. Extract the zip of the private Kaggle dataset `jankombajn/wad-traces` into `data/` (see [`docs/traces.md`](docs/traces.md)).
+2. Run `.venv/bin/python -m src.traces`. The command writes `results/log_check.csv` and `results/session_summary.csv`.
+3. Make the videos of the sessions: `.venv/bin/python -m src.replay data/shop --out data/replay`
