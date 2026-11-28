@@ -165,3 +165,33 @@ def test_mark_cache_keeps_one_mark():
     mark_cache(messages)
     marks = [p for m in messages if isinstance(m["content"], list) for p in m["content"] if "cache_control" in p]
     assert len(marks) == 1 and messages[-1]["content"][0]["cache_control"]
+
+
+def test_loop_guard_warns_then_stops():
+    from src.agent.agent import LoopGuard
+
+    guard = LoopGuard()
+    answers = [guard.check(("/cart.html", ("click", "x")), ["Clicked."], ("/cart.html", "1")) for _ in range(5)]
+    assert answers[0] == (None, None) and answers[1] == (None, None)
+    assert answers[2][0] is None and "same action" in answers[2][1]
+    assert answers[4] == ("loop", None)
+
+    guard = LoopGuard()
+    answers = [guard.check(("/", ("click", str(i))), ["Error: no element"], ("/", "0")) for i in range(5)]
+    assert "failed" in answers[2][1] and answers[4] == ("errors", None)
+
+    guard = LoopGuard()
+    answers = [guard.check(("/", ("scroll", str(i))), ["Scrolled."], ("/", "0")) for i in range(21)]
+    assert "no new page" in answers[12][1] and answers[20] == ("no_progress", None)
+
+
+def test_a_run_in_a_loop_stops(shop, tmp_path):
+    code = shop["store"].new_session("agent", "scripted", "test")
+    loop = [click("button", "Start"), click("link", "Start shopping")] + \
+        [lambda tree: ("open_url", {"url": "/cart.html"}), lambda tree: ("open_url", {"url": "/"})] * 10
+    model = ScriptedModel(loop)
+    summary = run_episode(model, f"{shop['url']}/s/{code}", tmp_path / "steps.jsonl", max_steps=40)
+    assert summary["end"] == "loop" and summary["steps"] < 14, summary
+    steps = [json.loads(line) for line in (tmp_path / "steps.jsonl").read_text().splitlines()]
+    assert any("warning" in s for s in steps)
+    assert any("Note from the browser" in str(m.get("content")) for m in model.requests[-1])

@@ -2,6 +2,7 @@
 
 import json
 import time
+from collections import Counter
 from pathlib import Path
 
 from .browser import Browser
@@ -67,7 +68,43 @@ def mark_cache(messages):
     last["content"][-1]["cache_control"] = {"type": "ephemeral"}
 
 
-def run_episode(model, link, log_path, browser="plain", motion="direct", max_steps=80, max_cost=2.0, seed=None):
+class LoopGuard:
+    """Find a run that repeats itself. Agent frameworks have such a guard, and the budget needs it.
+
+    First the model gets a warning, as from an agent framework. If it continues, the run stops.
+    """
+
+    WARNING = ("Note from the browser: {what}. Look at the current page and change your plan."
+               " If you cannot continue, call finish and tell the user why.")
+
+    def __init__(self, repeat_warn=3, repeat_stop=5, error_warn=3, error_stop=5, idle_warn=12, idle_stop=20):
+        self.limits = repeat_warn, repeat_stop, error_warn, error_stop, idle_warn, idle_stop
+        self.seen, self.errors, self.idle, self.places = Counter(), 0, 0, set()
+
+    def check(self, signature, results, place):
+        """Return (stop reason or None, warning text or None) after one step."""
+        repeat_warn, repeat_stop, error_warn, error_stop, idle_warn, idle_stop = self.limits
+        self.seen[signature] += 1
+        self.errors = self.errors + 1 if results and all(r.startswith("Error") for r in results) else 0
+        self.idle = 0 if place not in self.places else self.idle + 1
+        self.places.add(place)
+        repeats = self.seen[signature]
+        if repeats >= repeat_stop:
+            return "loop", None
+        if self.errors >= error_stop:
+            return "errors", None
+        if self.idle >= idle_stop:
+            return "no_progress", None
+        if repeats == repeat_warn:
+            return None, self.WARNING.format(what=f"you did the same action on the same page {repeats} times")
+        if self.errors == error_warn:
+            return None, self.WARNING.format(what=f"your last {self.errors} steps failed")
+        if self.idle == idle_warn:
+            return None, self.WARNING.format(what=f"your last {self.idle} steps opened no new page or state")
+        return None, None
+
+
+def run_episode(model, link, log_path, browser="plain", motion="direct", max_steps=50, max_cost=1.0, seed=None):
     """Do one session from the session link. Write one line for each step into log_path. Return the summary."""
     log_path = Path(log_path)
     log_path.parent.mkdir(parents=True, exist_ok=True)
@@ -79,6 +116,7 @@ def run_episode(model, link, log_path, browser="plain", motion="direct", max_ste
     # Thus the start of the history stays the same, and the cache of the model API can keep it.
     history = [{"role": "system", "content": SYSTEM}, {"role": "user", "content": TASK}]
     web = Browser(browser, motion, seed)
+    guard = LoopGuard()
     with log_path.open("w") as log:
         def write(record):
             log.write(json.dumps(record, ensure_ascii=False) + "\n")
@@ -103,6 +141,8 @@ def run_episode(model, link, log_path, browser="plain", motion="direct", max_ste
                     # A model that answers without a tool call stops. The user wants the work done, so ask again.
                     history.append({"role": "user", "content": "Continue with the tools. Call finish when all tasks are done."})
                 finished = False
+                url_before = web.page.url
+                signature = [url_before]
                 for call in calls:
                     name = call["function"]["name"]
                     try:
@@ -117,6 +157,8 @@ def run_episode(model, link, log_path, browser="plain", motion="direct", max_ste
                     elif name not in {t["function"]["name"] for t in TOOLS}:
                         result = f"Error: there is no tool {name}."
                     else:
+                        shown = {k: (web.describe(v) if k == "ref" else v) for k, v in args.items()}
+                        signature.append((name, json.dumps(shown, sort_keys=True)))
                         result = web.act(name, args)
                     record["calls"].append({"name": name, "args": args, "result": result,
                                             "ts": int(time.time() * 1000)})
@@ -124,7 +166,19 @@ def run_episode(model, link, log_path, browser="plain", motion="direct", max_ste
                 record["url_after"] = web.page.url
                 if calls and not finished:
                     history[-1]["content"] += "\n" + web.where()
+                if not finished:
+                    results = [c["result"] for c in record["calls"]]
+                    # A state is the page with the number of items in the cart, so that a new item is progress.
+                    place = (web.page.url, web.cart_count())
+                    stop, warning = guard.check(tuple(signature), results, place)
+                    if warning:
+                        history.append({"role": "user", "content": warning})
+                        record["warning"] = warning
+                    if stop:
+                        summary["end"] = stop
                 write(record)
+                if summary["end"] in ("loop", "errors", "no_progress"):
+                    break
                 if finished:
                     summary["end"] = "finish"
                     break

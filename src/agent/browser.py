@@ -102,6 +102,12 @@ class Browser:
             title = ""
         return f"Page after this step: {self.page.url} ({title})"
 
+    def cart_count(self):
+        try:
+            return self.page.evaluate("document.querySelector('.cart-link')?.innerText || ''")
+        except PlaywrightError:
+            return ""
+
     def act(self, name, args):
         """Do one tool call. Return a short text result for the model."""
         try:
@@ -111,6 +117,14 @@ class Browser:
             return f"Error: {first[:300]}"
         self.settle()
         return result or "Done."
+
+    def describe(self, ref):
+        """The line of the element in the last tree, without references. It stays the same after a reload."""
+        ref = str(ref).strip("[]").removeprefix("ref=")
+        for line in self.tree.splitlines():
+            if f"[ref={ref}]" in line or re.search(rf"\[ref=f\d+{re.escape(ref)}\]", line):
+                return re.sub(r"\s*\[ref=\w+\]", "", line).strip(" -:")
+        return ref
 
     def element(self, ref):
         # Models sometimes drop the frame part of a reference (e17 for f1e17). The last tree tells the full one.

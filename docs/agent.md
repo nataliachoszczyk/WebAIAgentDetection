@@ -75,7 +75,28 @@ A model can give more than one tool call in one answer. The agent then does the 
 - The history keeps the answers of the model and the results of the tools. Only the last request has the full page.
 - Thus the start of the history is the same in each request. A cache mark on the last part of the history lets the model API read it from the cache.
 - The model sends its thoughts back with the next request (see "Access to the models").
-- Limits for one run: 80 steps and 2 USD (`--max-steps`, `--max-cost`). The command also stops before a run can pass `--budget`.
+- The last tool result of each step tells the page after the step. Before its tool calls, the model writes a short note. Without these two parts, a model doubts its earlier steps (see "Version 2 of the agent").
+
+### Limits and the loop guard
+
+Do not let a run repeat itself without an end. The budget of the project is 35 USD.
+
+| Limit | Value | Option |
+|---|---|---|
+| Steps of one run | 50 | `--max-steps` |
+| Cost of one run | 1 USD | `--max-cost` |
+| Cost of all runs of one command | 5 USD | `--budget`: the command does not start a run that can pass it |
+| Runs in a row that do not finish | 2 | the command stops |
+
+The loop guard (`LoopGuard` in `src/agent/agent.py`) acts like the guards of agent frameworks. First the model gets a note from the browser that tells it to change its plan. If it continues, the run stops:
+
+| Case | Note | Stop (end of the run) |
+|---|---|---|
+| The same action on the same page | at the 3rd time | at the 5th time (`loop`) |
+| All tool calls of a step fail | after 3 steps in a row | after 5 steps in a row (`errors`) |
+| No new page or new number of items in the cart | after 12 steps | after 20 steps (`no_progress`) |
+
+An action is the same if it has the same tool, the same arguments and the same element. The guard compares the line of the element in the tree, because the references change after each reload.
 
 ### Browsers and motions
 
@@ -105,6 +126,16 @@ The `human` motion is the idea of the team in #30: it shows whether the behavior
 4. Check the spend again.
 
 For each run, the command makes a new session link with the label `agent`, the model id and a note such as `browser=plain motion=direct effort=medium run=wad-009`. The step log of the run is `data/agent/<session>.jsonl`. It has one line for each step (the page, the tool calls, the thoughts, the tokens, the cost and the time of the model) and a summary line at the end. Git does not keep this folder.
+
+### Version 2 of the agent
+
+The first version kept only the tool calls and short results such as "Clicked f4e156." in the history. One run of `claude-sonnet-5.5` then took 79 steps and 1.03 USD:
+
+- Its thoughts said that it "clicked without checking" and "worked blind", because it did not see the earlier pages in the history.
+- It went between the cart and the hiking catalog about 20 times and did not trust the cart.
+- The loop guard did not exist yet. On this log, the guard gives the first note at step 18 and stops the run at step 26.
+
+Version 2 adds the page after each step to the history and asks for a short note before each tool call. Then `claude-sonnet-5.5` did all tasks in 16 steps for 0.20 USD. `AGENT_VERSION` in `src/agent/agent.py` is 2, and the note of each session keeps it. The study uses only sessions of version 2 (`STUDY_AGENT_VERSIONS` in `src/traces.py`).
 
 ### First runs (2026-11-28)
 
