@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Your tasks | Pace &amp; Sole</title>
+  <link rel="stylesheet" href="/assets/css/shop.css">
+  <script src="/assets/js/analytics.js" defer></script>
+  <script src="/assets/js/widgets.js" defer></script>
+</head>
+<body>
+  <main>
+    <div class="card" style="max-width:720px;margin:20px auto">
+      <h1>Your tasks</h1>
+      <p id="intro" class="muted"></p>
+      <ol id="task-list"></ol>
+      <p class="muted">The tasks stay in your shopping list at the right side of each page. Work at your usual speed.</p>
+      <p class="muted">The shop records what you type and send in the forms.</p>
+      <a class="btn" href="/" id="start">Start shopping</a>
+    </div>
+  </main>
+  <script type="module">
+    import { esc, fetchJson } from "/assets/js/common.js";
+    const data = await fetchJson("/api/tasks");
+    document.getElementById("intro").textContent = data.intro;
+    document.getElementById("task-list").innerHTML = data.tasks
+      .map((t) => `<li><strong>${esc(t.title)}.</strong> ${esc(t.text)}</li>`).join("");
+    sessionStorage.setItem("ps_list", "open");
+    // A new session starts with an empty cart, also in a browser that was used before.
+    localStorage.removeItem("ps_cart");
+  </script>
+</body>
+</html>

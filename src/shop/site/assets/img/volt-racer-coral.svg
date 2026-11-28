@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 340" role="img"><title>Volt Racer, Coral</title>
+<ellipse cx="244" cy="300" rx="196" ry="13" fill="#000" opacity="0.10"/>
+<path d="M58 262 Q52 286 82 288 L392 288 Q430 288 432 262 Z" fill="#706d6b"/>
+<path d="M54 238 Q46 264 76 270 L398 270 Q434 268 434 246 Q432 226 404 224 L86 226 Q58 226 54 238 Z" fill="#fbf4ee"/>
+<path d="M60 258 L430 252" stroke="#cdc8c3" stroke-width="3" fill="none"/>
+<path d="M68 230 C62 196 72 160 96 146 C114 136 134 132 152 120 L212 86 C228 78 246 82 254 96 L272 130 C302 146 354 168 394 186 C422 198 434 214 428 228 Z" fill="#f07a63"/>
+<path d="M332 170 C372 184 420 200 428 228 L344 230 C338 206 334 188 332 170 Z" fill="#c46451"/>
+<path d="M68 230 C62 196 72 160 96 146 C112 140 126 152 128 178 C130 204 122 222 120 230 Z" fill="#26324a"/>
+<path d="M150 214 C196 196 246 168 306 150 L318 164 C258 182 210 208 168 228 Z" fill="#26324a"/>
+<path d="M96 146 C120 152 150 142 172 128" stroke="#9c4f40" stroke-width="5" fill="none" stroke-linecap="round"/>
+<path d="M208 88 C214 68 238 62 250 78 L256 94" fill="#f28d7a"/>
+<g stroke="#676f80" stroke-width="5" stroke-linecap="round">
+<path d="M214 104 L234 96"/><path d="M226 120 L248 110"/><path d="M240 136 L262 124"/><path d="M256 150 L276 138"/></g>
+</svg>

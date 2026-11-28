@@ -20,3 +20,88 @@
   - In the task session, `MODEL_PROXY_URL` already ends with `/openapi`.
   - The session runs Python 3.12. `navigator.webdriver` is `true` in headless Chromium from Playwright.
 - Added the general rules of the course project to `docs/task.md` and `docs/task_eng.md`: report format, grading criteria, the deadline (11 January 2027, 16:00).
+
+## 2026-11-27
+
+- Decided the hosting of the test page (wad-001, #21). See `docs/test_page.md`:
+  - One Python server (standard library only) serves the page and writes the logs as JSON Lines files.
+  - People and agents use the same public HTTPS address from a Cloudflare quick tunnel.
+  - Each session starts from a link with a session code. The server records events only for a valid code.
+- Defined the event log format (wad-002, #22). See `docs/log_format.md`:
+  - The set of events follows web analytics, session replay and bot protection tools.
+  - The logger records the length of a text and the type of a key, not the text.
+  - JSON Lines: `sessions.jsonl` holds the label of each session, `events/<session>.jsonl` holds the events.
+  - Added `src/shop/logger/schema.py` (the fields of each event type), `src/shop/store.py` (write and load the logs) and tests.
+- Made the test shop "Pace & Sole" (wad-003, #23). See `docs/test_page.md`:
+  - 12 shoe models, search, filters, sort, product pages, cart, checkout, order confirmation, contact form.
+  - Four tasks in `src/shop/tasks.json`. Task 2 needs a comparison: the cheapest waterproof boot has no size 42.
+  - The server (`src/shop/server.py`) uses only the Python standard library. It records the orders and the contact messages for valid sessions only.
+  - Tests: unit tests of the server and one test in Chromium that does all four tasks.
+- Added the event logger (wad-004, #24). See `docs/test_page.md`:
+  - `src/shop/logger/logger.js` records pointer, click, key, input, scroll, focus and page events, and the browser fingerprint.
+  - The server endpoint `POST /api/events` accepts events only for a valid session and keeps only the known fields.
+  - The logger adds about 2 ms to a page load and about 2 µs to each pointer event.
+  - The browser test checks that the client events hold no typed text.
+- Added the traps (wad-005, #25). See `docs/test_page.md`:
+  - 7 traps of three kinds (honeypot, hidden instruction, canary link) in three channels (`dom`, `a11y`, `visual`).
+  - The `a11y` traps are for the measure of the cost for screen reader users (wad-023).
+  - The traps carry no visible marks in the DOM. The study scripts have neutral names and no comments.
+  - A canary page looks like any missing page. The server records the request.
+- Added the reverse CAPTCHA (wad-006, #26). See `docs/test_page.md`:
+  - An "Order security check" in the checkout with three checks: retype a code, find a code in the terms, multiply two numbers.
+  - Each attempt gives one `captcha` event for each check, with the time, the key presses, a paste and the scroll of the terms box.
+  - A browser test checks that wrong answers stop the order, and that the events show typed and filled answers.
+- Finished M1 (Test page, #49):
+  - Updated `README.md` with the install, the tests and the run of the shop.
+  - The server events now have the field `ts`. The store reads the session file again only when it changes.
+- Checked the Cloudflare quick tunnel (wad-001, #21). See "Hosting" in `docs/test_page.md`:
+  - The four browser tests passed through the public tunnel address. The logs had all event types.
+  - The tunnel adds about 0.2 s to each request. The delay is the same for people and agents.
+  - The server now answers HEAD requests like a usual web server.
+- Put the public shop into Docker containers (wad-001, #21). See "Hosting" in `docs/test_page.md`:
+  - The shop image is distroless. The server runs as `nobody`, read-only, without capabilities and without access to the internet.
+  - A second container runs the Cloudflare tunnel. The shop publishes no port on the laptop.
+  - The four browser tests passed through the tunnel to the containers.
+  - Run the public shop only during a collection of traces, and stop it after each collection.
+- Removed the words that tell about the study from the shop (wad-003, #23). See "Words that tell about the study" in `docs/test_page.md`:
+  - The task page is `/start.html`. The panel with the tasks is "Your shopping list".
+  - New neutral names: the cookies `ps_sid` and `ps_visit`, the global object `window.psAnalytics`.
+  - The shop address is now in Chełm. Two tests check the served files and the rendered pages for the study words.
+- Record the typed text and test the logger in more browsers (wad-004, #24):
+  - The `input` events now have the field `value`: the text of the field after the change, at most 300 characters.
+  - New tests in `tests/test_logger.py`: typing, `fill`, script events, copy and paste, mouse, two tabs, touch, lost events, no session. See "Tests of the logger" in `docs/test_page.md`.
+  - The browser tests run in Chromium, Firefox and WebKit. WebKit needs system libraries.
+  - The pages load the catalog and the tasks again after a short network fault. The checkout and the contact form show an error after a network fault.
+- Added the start and the end of a session (wad-003, #23). See "Start and end of a session" in `docs/test_page.md`:
+  - A second open of the session link continues the session with the same cart.
+  - The contact message after the order ends the session. After 60 s, the server refuses the events and the logger stops.
+  - After the end, the link shows "All tasks are done", or "This link is not active" in a different browser.
+- Added join links for groups of people (wad-001, #21). See "Links for a group" in `docs/test_page.md`:
+  - `/join/<secret>` gives each new browser its own session, up to a limit and until a date.
+  - The same browser keeps its session. Parallel visits cannot pass the limit.
+  - New commands: `new-join` and `status`.
+- Checked all pages in Chromium and Firefox with screenshots:
+  - On a narrow screen (below 1100 px), the task list is now a bar at the bottom. Before, it took 350 px of the width, and the shop did not fit on a phone.
+  - The label of the terms check box had a space before the full stop.
+  - New tests check the label and the narrow screen.
+- Did a full check of the collection through Docker and the tunnel (wad-001, #21). See "Full check of the collection" in `docs/test_page.md`:
+  - Two person-like scripts (Chromium and Firefox) did the four tasks at the same time through a join link.
+  - No event was lost, no field was unknown, and the sessions closed after the last task.
+- Ran the browser tests in WebKit (the engine of Safari) after the installation of its system libraries:
+  - The shop, the logger, the traps and the reverse CAPTCHA work in WebKit.
+  - Fixed the logger: the limit on fast events (mouse, wheel, scroll, window size) lost the last event of a series. Now the logger keeps it, so the log has the final position.
+  - Fixed two tests: copy and paste use Control on Linux, and Playwright sets `maxTouchPoints` only in Chromium.
+
+## 2026-11-28
+
+- Added `docs/collection.md`: the commands for a collection of human traces, from the start of the containers to the upload of the logs. Two options: a join link for a group or one link for each person.
+- Changed the tasks after a review with the team (wad-003, #23):
+  - Task 3 gives no fixed data. The person types any name, e-mail and address, and selects the delivery and the payment.
+  - Task 4 asks a question about the order. The order number is not necessary.
+  - The contact message now ends the session also without an order. Not each customer orders.
+  - `expected` keeps the answers of tasks 1 and 2 only, as an additional measure.
+- Did a pilot session with one person through the tunnel (wad-004, #24):
+  - The log had 2096 events on 11 pages. About 530 events of the checkout and the contact page were lost, also all `captcha` events.
+  - Cause: the browser limit of 64 KB for `keepalive` requests in flight. On a slow network, the browser refused all new requests.
+  - Fix: the logger sends without `keepalive`, sends a failed batch again and keeps the unconfirmed events in `sessionStorage`. The server ignores doubled events.
+  - A test with a slow server: the old logger kept 428 of 914 events, the new logger kept all 914.

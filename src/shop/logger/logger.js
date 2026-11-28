@@ -1,0 +1,264 @@
+// Event logger of the test shop. The format is in docs/log_format.md.
+// It only listens: it never stops or changes an event, so the page works the same with it.
+(() => {
+  "use strict";
+
+  // Only study sessions are recorded. The session cookie is HttpOnly, so we look at the study flag.
+  if (!document.cookie.split("; ").includes("ps_visit=1")) {
+    window.psAnalytics = { log() {}, mark() {} };
+    return;
+  }
+
+  const ENDPOINT = "/api/events";
+  const FLUSH_MS = 2000;
+  const MAX_QUEUE = 100;
+  const MAX_SEND = 200;
+  const SEND_TIMEOUT_MS = 15000;
+  // A beacon must stay below the browser limit of 64 KB for all beacons in flight.
+  const MAX_BEACON_BYTES = 50000;
+  const UNSENT = "ps_unsent_";
+  const THROTTLE = { pointer_move: 50, wheel: 100, scroll: 100, resize: 250 };
+  const SELECTABLE = new Set(["checkbox", "radio"]);
+  // The server keeps at most 300 characters of a string.
+  const MAX_TEXT = 300;
+
+  const page = Math.random().toString(36).slice(2, 10);
+  let seq = 0;
+  let queue = [];
+  // The events of the request in flight. They go back to the queue if the request fails.
+  let sending = [];
+  // The server refuses the events after the end of the session. Then the logger stops.
+  let stopped = false;
+  const lastTime = {};
+  // Trap elements carry no attribute that an agent can read in the DOM. The page marks them here.
+  const traps = new WeakMap();
+
+  const path = () => location.pathname + location.search;
+  const round = (n) => Math.round(n * 10) / 10;
+
+  // A throttled type keeps its last skipped event. The logger sends it at the end of the wait or before
+  // the next event. Thus the last position of a fast series is never lost, and the times stay in order.
+  const skipped = {};
+
+  function push(type, t, data) {
+    queue.push({ page, seq: seq++, t: round(t), ts: Math.round(performance.timeOrigin + t), type, path: path(), ...data });
+    if (queue.length >= MAX_QUEUE) flush();
+  }
+
+  function releaseSkipped() {
+    for (const [type, item] of Object.entries(skipped).sort((a, b) => a[1].t - b[1].t)) {
+      clearTimeout(item.timer);
+      delete skipped[type];
+      lastTime[type] = item.t;
+      push(type, item.t, item.data);
+    }
+  }
+
+  function emit(type, data = {}) {
+    const t = performance.now();
+    const wait = THROTTLE[type];
+    if (wait && t - (lastTime[type] ?? -Infinity) < wait) {
+      const timer = skipped[type]?.timer ?? setTimeout(releaseSkipped, lastTime[type] + wait - t);
+      skipped[type] = { t, data, timer };
+      return;
+    }
+    releaseSkipped();
+    if (wait) lastTime[type] = t;
+    push(type, t, data);
+  }
+
+  // The unconfirmed events stay in sessionStorage. If this page closes before they arrive, the next page sends them.
+  function remember() {
+    try {
+      const unsent = sending.concat(queue);
+      if (unsent.length) sessionStorage.setItem(UNSENT + page, JSON.stringify(unsent));
+      else sessionStorage.removeItem(UNSENT + page);
+    } catch {
+      // The storage can be full or blocked. Then only the requests keep the events.
+    }
+  }
+
+  function flush(final = false) {
+    if (stopped) return;
+    if (final) return sendBeacons();
+    if (sending.length || !queue.length) return;
+    sending = queue.splice(0, MAX_SEND);
+    remember();
+    // No keepalive here: a slow network fills the keepalive limit, and then the browser refuses all new requests.
+    fetch(ENDPOINT, { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ events: sending }), signal: AbortSignal.timeout(SEND_TIMEOUT_MS) })
+      .then((response) => {
+        if (response.status === 403) stopped = true;
+        // 400 is a bad batch. A retry cannot help it.
+        return response.ok || response.status === 400 || response.status === 403;
+      })
+      .catch(() => false)
+      .then((done) => {
+        if (!done) queue = sending.concat(queue);
+        sending = [];
+        if (stopped) queue = [];
+        remember();
+        if (done && queue.length >= MAX_QUEUE) flush();
+      });
+  }
+
+  // At the end of a page, only sendBeacon is sure to reach the server. A beacon can still fail on the network,
+  // so the events stay in sessionStorage until a fetch confirms them. The server ignores the events that it has already.
+  function sendBeacons() {
+    remember();
+    let chunk = [];
+    let size = 0;
+    const send = () => {
+      if (chunk.length) navigator.sendBeacon?.(ENDPOINT, new Blob([JSON.stringify({ events: chunk })], { type: "application/json" }));
+      chunk = [];
+      size = 0;
+    };
+    for (const event of sending.concat(queue)) {
+      const bytes = JSON.stringify(event).length + 1;
+      if (chunk.length && (size + bytes > MAX_BEACON_BYTES || chunk.length >= MAX_SEND)) send();
+      chunk.push(event);
+      size += bytes;
+    }
+    send();
+  }
+
+  // Send the events that an earlier page of this tab could not send.
+  function takeUnsent() {
+    try {
+      for (const key of Object.keys(sessionStorage)) {
+        if (!key.startsWith(UNSENT) || key === UNSENT + page) continue;
+        queue.push(...JSON.parse(sessionStorage.getItem(key)));
+        sessionStorage.removeItem(key);
+      }
+    } catch {
+      // A damaged entry is lost. The other events still go.
+    }
+  }
+
+  // A short, stable description of an element. The typed text is only in the input events.
+  function describe(el) {
+    if (!(el instanceof Element)) return el === document || el === window ? "document" : null;
+    for (let node = el; node; node = node.parentElement) {
+      if (traps.has(node)) return `trap:${traps.get(node)}`;
+    }
+    const tag = el.tagName.toLowerCase();
+    if (el.id) return `${tag}#${el.id}`;
+    const name = el.getAttribute("name");
+    if (name) return `${tag}[name=${name}]`;
+    const cls = el.classList[0];
+    return cls ? `${tag}.${cls}` : tag;
+  }
+
+  function isTextField(el) {
+    return (el instanceof HTMLInputElement && !SELECTABLE.has(el.type)) || el instanceof HTMLTextAreaElement;
+  }
+
+  function label(el) {
+    if (!(el instanceof Element) || isTextField(el)) return null;
+    const clickable = el.closest("a, button, label, [role=button]") ?? el;
+    const text = clickable.getAttribute("aria-label") || clickable.textContent || "";
+    return text.replace(/\s+/g, " ").trim().slice(0, 60) || null;
+  }
+
+  function keyClass(key) {
+    if (key.length === 1) return /\d/.test(key) ? "digit" : key === " " ? "space" : "char";
+    return key;
+  }
+
+  function point(e) {
+    return { x: Math.round(e.clientX), y: Math.round(e.clientY) };
+  }
+
+  function environment() {
+    const env = {
+      ua: navigator.userAgent,
+      webdriver: navigator.webdriver ?? null,
+      languages: (navigator.languages ?? []).join(","),
+      platform: navigator.platform,
+      screen: `${screen.width}x${screen.height}x${screen.colorDepth}`,
+      window: `${innerWidth}x${innerHeight}`,
+      outer: `${outerWidth}x${outerHeight}`,
+      dpr: devicePixelRatio,
+      tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      cores: navigator.hardwareConcurrency ?? null,
+      memory: navigator.deviceMemory ?? null,
+      touch: navigator.maxTouchPoints ?? 0,
+      plugins: navigator.plugins?.length ?? 0,
+      chrome: typeof window.chrome === "object",
+    };
+    try {
+      const gl = document.createElement("canvas").getContext("webgl");
+      const info = gl?.getExtension("WEBGL_debug_renderer_info");
+      if (info) {
+        env.webgl_vendor = gl.getParameter(info.UNMASKED_VENDOR_WEBGL);
+        env.webgl_renderer = gl.getParameter(info.UNMASKED_RENDERER_WEBGL);
+      }
+    } catch {
+      // Some browsers block WebGL. The fingerprint is then without it.
+    }
+    return env;
+  }
+
+  const listen = (target, type, handler) =>
+    target.addEventListener(type, (e) => {
+      try {
+        handler(e);
+      } catch {
+        // The logger must never break the page.
+      }
+    }, { capture: true, passive: true });
+
+  listen(document, "pointermove", (e) => emit("pointer_move", { ...point(e), ptype: e.pointerType }));
+  for (const type of ["pointerdown", "pointerup"]) {
+    listen(document, type, (e) => emit(type === "pointerdown" ? "pointer_down" : "pointer_up", {
+      ...point(e), button: e.button, ptype: e.pointerType, target: describe(e.target), trusted: e.isTrusted,
+    }));
+  }
+  listen(document, "click", (e) => emit("click", {
+    ...point(e), button: e.button, target: describe(e.target), text: label(e.target),
+    href: e.target instanceof Element ? e.target.closest("a")?.getAttribute("href") ?? null : null,
+    trusted: e.isTrusted,
+  }));
+  listen(document, "wheel", (e) => emit("wheel", { dx: Math.round(e.deltaX), dy: Math.round(e.deltaY), trusted: e.isTrusted }));
+  listen(window, "scroll", () => emit("scroll", { sx: Math.round(scrollX), sy: Math.round(scrollY) }));
+  listen(document, "keydown", (e) => emit("key_down", {
+    key: keyClass(e.key ?? ""), target: describe(e.target), repeat: e.repeat, trusted: e.isTrusted,
+  }));
+  listen(document, "keyup", (e) => emit("key_up", { key: keyClass(e.key ?? ""), target: describe(e.target), trusted: e.isTrusted }));
+  listen(document, "input", (e) => {
+    if (!isTextField(e.target)) return;
+    const value = e.target.value;
+    emit("input", { target: describe(e.target), value: value.slice(0, MAX_TEXT), len: value.length, itype: e.inputType ?? "", trusted: e.isTrusted });
+  });
+  listen(document, "change", (e) => {
+    const el = e.target;
+    if (isTextField(el)) return;
+    const value = el instanceof HTMLInputElement && SELECTABLE.has(el.type) ? (el.checked ? el.value || "on" : "") : el.value;
+    emit("change", { target: describe(el), value, trusted: e.isTrusted });
+  });
+  listen(document, "paste", (e) => emit("paste", { target: describe(e.target), len: e.clipboardData?.getData("text").length ?? 0 }));
+  listen(document, "copy", () => emit("copy", { target: describe(document.activeElement), len: String(getSelection()).length }));
+  listen(document, "focusin", (e) => emit("focus", { target: describe(e.target) }));
+  listen(document, "focusout", (e) => emit("blur", { target: describe(e.target) }));
+  listen(document, "submit", (e) => emit("submit", { target: describe(e.target) }));
+  listen(document, "visibilitychange", () => {
+    emit("visibility", { state: document.visibilityState });
+    if (document.visibilityState === "hidden") flush(true);
+  });
+  listen(window, "focus", (e) => e.target === window && emit("window_focus"));
+  listen(window, "blur", (e) => e.target === window && emit("window_blur"));
+  listen(window, "resize", () => emit("resize", { w: innerWidth, h: innerHeight }));
+  listen(window, "pagehide", () => {
+    emit("page_hide");
+    flush(true);
+  });
+
+  takeUnsent();
+  emit("page_view", { title: document.title, referrer: document.referrer, time_origin: Math.round(performance.timeOrigin) });
+  // The fingerprint needs a WebGL context. Make it after the page load, so it does not delay the page.
+  addEventListener("load", () => setTimeout(() => emit("env", { env: environment() }), 0), { once: true });
+  setInterval(flush, FLUSH_MS);
+
+  // Other parts of the page (shop, traps, reverse CAPTCHA) record their events here.
+  window.psAnalytics = { log: (type, data) => emit(type, data), mark: (el, trap) => traps.set(el, trap) };
+})();

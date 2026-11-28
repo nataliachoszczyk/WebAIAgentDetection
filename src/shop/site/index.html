@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pace &amp; Sole | Shoes for running, hiking and every day</title>
+  <link rel="stylesheet" href="/assets/css/shop.css">
+  <script src="/assets/js/analytics.js" defer></script>
+  <script src="/assets/js/widgets.js" defer></script>
+</head>
+<body>
+  <main>
+    <section class="hero">
+      <div>
+        <h1>Shoes that go the distance</h1>
+        <p>Running shoes, hiking boots and everyday sneakers. Free standard delivery from €150 and 30-day returns.</p>
+        <a class="btn" href="#catalog">Shop all shoes</a>
+      </div>
+      <img src="/assets/img/ridge-runner-moss.svg" alt="Ridge Runner trail shoe in Moss">
+    </section>
+
+    <section class="categories" aria-label="Shop by category">
+      <a class="category-tile" href="/?category=running#catalog"><img src="/assets/img/tempo-glide-cloud.svg" alt=""><span><strong>Running</strong><span class="muted">Road and trail</span></span></a>
+      <a class="category-tile" href="/?category=hiking#catalog"><img src="/assets/img/alder-trek-forest.svg" alt=""><span><strong>Hiking</strong><span class="muted">Boots and shoes</span></span></a>
+      <a class="category-tile" href="/?category=casual#catalog"><img src="/assets/img/harbor-canvas-navy.svg" alt=""><span><strong>Casual</strong><span class="muted">Every day</span></span></a>
+      <a class="category-tile" href="/?category=formal#catalog"><img src="/assets/img/oxford-classic-cognac.svg" alt=""><span><strong>Formal</strong><span class="muted">Office and events</span></span></a>
+    </section>
+
+    <section id="catalog" class="catalog">
+      <aside class="filters card" aria-label="Filters">
+        <h3>Category</h3>
+        <div id="filter-category"></div>
+        <h3>Size (EU)</h3>
+        <select id="filter-size" aria-label="Size">
+          <option value="">All sizes</option>
+        </select>
+        <h3>Features</h3>
+        <label class="check"><input type="checkbox" id="filter-waterproof"> Waterproof</label>
+        <h3>Price</h3>
+        <select id="filter-price" aria-label="Maximum price">
+          <option value="">Any price</option>
+          <option value="75">Up to €75</option>
+          <option value="100">Up to €100</option>
+          <option value="150">Up to €150</option>
+        </select>
+        <p><button type="button" class="link-btn" id="filter-reset">Clear all filters</button></p>
+      </aside>
+      <div>
+        <div class="catalog-bar">
+          <h2 id="catalog-title" style="margin:0">All shoes</h2>
+          <label class="muted">Sort by
+            <select id="sort">
+              <option value="featured">Featured</option>
+              <option value="price-asc">Price: low to high</option>
+              <option value="price-desc">Price: high to low</option>
+              <option value="rating">Top rated</option>
+            </select>
+          </label>
+        </div>
+        <p class="muted" id="catalog-count"></p>
+        <div class="grid" id="product-grid"></div>
+      </div>
+    </section>
+  </main>
+  <script type="module" src="/assets/js/pages/home.js"></script>
+</body>
+</html>

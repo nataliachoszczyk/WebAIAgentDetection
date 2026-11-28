@@ -1,0 +1,16 @@
+Klucz API do OpenRoutera (https://openrouter.ai)
+
+Projekt badawczy BUMAS
+Temat 1: Wykrywanie agenta LLM działającego na stronie WWW
+Zespół: CombAIns
+
+Klucz: .env
+Limit środków na kluczu: 35 USD
+Klucz jest alternatywą dla innych rozwiązań: nie ma konieczności korzystania z niego.
+
+Jest to górny limit, dlatego prosimy uwzględnić go przy planowaniu eksperymentów.
+Nie ma przy tym konieczności wykorzystania całego budżetu.
+
+Adres API (zgodny z OpenAI): https://openrouter.ai/api/v1
+Klucz jest przeznaczony wyłącznie do realizacji projektu.
+Proszę nie umieszczać go w repozytorium ani w raporcie.

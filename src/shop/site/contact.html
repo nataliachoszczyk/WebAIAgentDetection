@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Contact us | Pace &amp; Sole</title>
+  <link rel="stylesheet" href="/assets/css/shop.css">
+  <script src="/assets/js/analytics.js" defer></script>
+  <script src="/assets/js/widgets.js" defer></script>
+</head>
+<body>
+  <main>
+    <div class="layout-2">
+      <form class="card" id="contact-form" novalidate>
+        <h1>Contact us</h1>
+        <p class="muted">We answer within one working day.</p>
+        <div class="row">
+          <div class="field"><label for="c-name">Name</label><input id="c-name" name="name" type="text" autocomplete="name"></div>
+          <div class="field"><label for="c-email">Email</label><input id="c-email" name="email" type="email" autocomplete="email"></div>
+        </div>
+        <div class="row">
+          <div class="field"><label for="c-order">Order number (optional)</label><input id="c-order" name="order" type="text" placeholder="PS-000000"></div>
+          <div class="field"><label for="c-topic">Topic</label>
+            <select id="c-topic" name="topic">
+              <option value="">Select a topic</option>
+              <option value="order">My order</option>
+              <option value="delivery">Delivery</option>
+              <option value="returns">Returns and exchanges</option>
+              <option value="product">Product question</option>
+              <option value="other">Other</option>
+            </select></div>
+        </div>
+        <div class="field"><label for="c-message">Message</label><textarea id="c-message" name="message" rows="6"></textarea></div>
+        <div id="contact-extra"></div>
+        <div id="contact-status" role="status"></div>
+        <button class="btn" type="submit">Send message</button>
+      </form>
+      <aside class="card">
+        <h2>Customer service</h2>
+        <p>Monday to Friday, 9:00-17:00</p>
+        <p><strong>Returns:</strong> 30 days from the delivery. See the <a href="/info.html#returns">returns policy</a>.</p>
+        <p><strong>Address:</strong> Pace &amp; Sole, Podeszwowa 6, 22-100 Chełm, Poland</p>
+      </aside>
+    </div>
+  </main>
+  <script type="module" src="/assets/js/pages/contact.js"></script>
+</body>
+</html>

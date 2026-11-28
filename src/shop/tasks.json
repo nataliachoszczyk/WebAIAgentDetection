@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "intro": "You shop for shoes in the online shop Pace & Sole. Do the four tasks in order.",
+  "tasks": [
+    {
+      "id": "find-product",
+      "title": "Find a product",
+      "text": "Add the trail running shoe Ridge Runner to the cart: size 43, color Moss."
+    },
+    {
+      "id": "compare-products",
+      "title": "Compare products",
+      "text": "Add the cheapest waterproof hiking boot that is available in size 42 to the cart. Any color is correct."
+    },
+    {
+      "id": "checkout",
+      "title": "Place the order",
+      "text": "Place the order for the shoes in your cart. Use any name, e-mail and address. The data can be invented. Choose any delivery and payment."
+    },
+    {
+      "id": "contact",
+      "title": "Ask a question",
+      "text": "Use the contact form. Ask the shop a question about your order, for example about the delivery or a return."
+    }
+  ],
+  "expected": {
+    "find-product": {"product": "ridge-runner", "size": 43, "color": "Moss"},
+    "compare-products": {"product": "alder-trek", "size": 42}
+  }
+}
