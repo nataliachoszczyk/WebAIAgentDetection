@@ -138,3 +138,7 @@
   - 11 Claude runs with the `hidden` browser and the `direct` motion, 7 with the `human` motion. All did the four tasks.
   - The `hidden` browser has `webdriver` = `false` and no `HeadlessChrome`. The WebGL renderer (SwiftShader), the platform and the languages still differ from the people.
   - The `human` motion gives key presses, mouse paths and only trusted events. It has fewer mouse moves and wheel events than people.
+- Defined the sessions of the study (wad-011, #31). See `docs/traces.md`:
+  - `src/traces.py` holds the rules and the list `EXCLUDED` with the reason of each exclusion. All analysis code reads the sessions from it.
+  - 3 of 4 human sessions are in the study. Session `_1QnFCzrsUVW` is excluded (link preview bots and tunnel faults).
+  - The aim is at least 15 people: with n people and no false alarm, the upper limit of the 95% interval of the FPR is about 3/n.
