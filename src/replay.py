@@ -336,6 +336,17 @@ class Replay:
         return canvas
 
 
+def video_name(data_dir, code):
+    """An agent video has the model and the setup in its name, for example claude-opus-5.5_plain-direct_<code>.mp4."""
+    from src.traces import sessions
+
+    info = next((s for s in sessions(data_dir) if s["session"] == code), None)
+    if not info or info["label"] != "agent":
+        return f"{code}.mp4"
+    model = (info["model"] or "unknown").split("/")[-1]
+    return f"{model}_{info['browser']}-{info['motion']}_{code}.mp4"
+
+
 def main():
     parser = argparse.ArgumentParser(prog="python -m src.replay", description=__doc__.splitlines()[0])
     parser.add_argument("data_dir", help="the folder with sessions.jsonl and events/")
@@ -359,7 +370,7 @@ def main():
         browser = p.chromium.launch()
         for path in files:
             events = load_session(path)
-            target = out / f"{path.stem}.mp4"
+            target = out / video_name(args.data_dir, path.stem)
             frames = Replay(events, base, browser, args.fps, args.speed).run(store.new_session("bot", note="replay"), target)
             print(f"{target}: {frames} frames, {frames / args.fps:.0f} s")
         browser.close()
