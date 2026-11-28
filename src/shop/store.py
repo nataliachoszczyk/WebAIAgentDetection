@@ -70,16 +70,24 @@ class Store:
     def join_sessions(self, secret):
         return [s for s in self.sessions().values() if s.get("join") == secret]
 
+    def join_problem(self, secret):
+        """Return why the join link cannot make a session ("missing", "expired" or "full"), or None."""
+        join = self.joins().get(secret)
+        if join is None:
+            return "missing"
+        if time.time() * 1000 > join["until"]:
+            return "expired"
+        if len(self.join_sessions(secret)) >= join["max"]:
+            return "full"
+        return None
+
     def join_session(self, secret):
         """Make a session from a join link. Return (code, None), or (None, reason) if the link is not usable."""
         with self._lock:
-            join = self.joins().get(secret)
-            if join is None:
-                return None, "missing"
-            if time.time() * 1000 > join["until"]:
-                return None, "expired"
-            if len(self.join_sessions(secret)) >= join["max"]:
-                return None, "full"
+            problem = self.join_problem(secret)
+            if problem:
+                return None, problem
+            join = self.joins()[secret]
             return self.new_session(join["label"], join["model"], join["note"], join=secret), None
 
     def is_valid(self, code):

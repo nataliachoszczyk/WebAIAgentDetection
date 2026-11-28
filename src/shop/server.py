@@ -53,10 +53,11 @@ class ShopHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         url = urlsplit(self.path)
+        # A link only shows the start button. Link preview bots of chat apps open each link, but they do not press it.
         if url.path.startswith("/s/"):
-            return self.start_session(url.path[3:], parse_qs(url.query))
+            return self.session_link(url.path[3:], parse_qs(url.query))
         if url.path.startswith("/join/"):
-            return self.join(url.path[6:], parse_qs(url.query))
+            return self.join_link(url.path[6:], parse_qs(url.query))
         if url.path == "/api/tasks":
             tasks = json.loads(TASKS_FILE.read_text(encoding="utf-8"))
             # The expected answers are for the analysis only, not for the page.
@@ -76,6 +77,10 @@ class ShopHandler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         url = urlsplit(self.path)
+        if url.path.startswith("/s/"):
+            return self.start_session(url.path[3:], parse_qs(url.query))
+        if url.path.startswith("/join/"):
+            return self.join(url.path[6:], parse_qs(url.query))
         handlers = {
             "/api/events": self.receive_events,
             "/api/order": self.place_order,
@@ -99,6 +104,24 @@ class ShopHandler(BaseHTTPRequestHandler):
     def cookie_session(self):
         cookie = SimpleCookie(self.headers.get("Cookie", ""))
         return cookie[SESSION_COOKIE].value if SESSION_COOKIE in cookie else None
+
+    def session_link(self, code, query):
+        if not self.store.is_valid(code):
+            return self.send_not_found()
+        # The same browser continues without the button. A closed session shows its end page.
+        if self.cookie_session() == code or self.store.state(code, "closed") is not None:
+            return self.start_session(code, query)
+        return self.send_file(SITE_DIR / "welcome.html")
+
+    def join_link(self, secret, query):
+        if secret not in self.store.joins():
+            return self.send_not_found()
+        own = self.cookie_session()
+        if own and self.store.sessions().get(own, {}).get("join") == secret:
+            return self.start_session(own, query)
+        if self.store.join_problem(secret):
+            return self.send_file(SITE_DIR / "closed.html", HTTPStatus.GONE)
+        return self.send_file(SITE_DIR / "welcome.html")
 
     def start_session(self, code, query):
         if not self.store.is_valid(code):

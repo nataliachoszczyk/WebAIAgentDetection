@@ -5,6 +5,8 @@ import time
 
 import pytest
 
+from conftest import open_link
+
 playwright = pytest.importorskip("playwright.sync_api")
 
 BROWSERS = ["chromium", "firefox", "webkit"]
@@ -37,7 +39,7 @@ class Session:
         self.page = self.context.new_page()
         self.errors = []
         self.page.on("pageerror", lambda e: self.errors.append(str(e)))
-        self.open(f"/s/{self.code}?next={path}")
+        open_link(self.page, f"{shop['url']}/s/{self.code}?next={path}")
 
     def open(self, path, page=None):
         page = page or self.page
