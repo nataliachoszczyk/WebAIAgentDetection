@@ -94,6 +94,14 @@ class Browser:
         shot = self.page.screenshot(type="jpeg", quality=70)
         return text, base64.b64encode(shot).decode()
 
+    def where(self):
+        """A short state of the browser for the history: the page after the last action."""
+        try:
+            title = self.page.title()
+        except PlaywrightError:
+            title = ""
+        return f"Page after this step: {self.page.url} ({title})"
+
     def act(self, name, args):
         """Do one tool call. Return a short text result for the model."""
         try:

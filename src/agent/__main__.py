@@ -5,14 +5,15 @@ import json
 import subprocess
 from pathlib import Path
 
-from .agent import run_episode
+from .agent import AGENT_VERSION, run_episode
 from .browser import BROWSERS, MOTIONS
 from .model import Model, spend
 
 
 def new_link(args):
     """Make a session link with the label `agent`. The note keeps the setup of the run."""
-    note = f"browser={args.browser} motion={args.motion} effort={args.effort or 'none'} run={args.note}"
+    note = (f"browser={args.browser} motion={args.motion} effort={args.effort or 'none'} agent={AGENT_VERSION}"
+            f" run={args.note}")
     if args.sessions == "docker":
         command = ["docker", "compose", "exec", "-T", "shop", "/usr/bin/python3", "-m", "src.shop", "new-session",
                    "--label", "agent", "--model", args.model, "--note", note, "--base-url", args.base_url]

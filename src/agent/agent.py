@@ -6,9 +6,16 @@ from pathlib import Path
 
 from .browser import Browser
 
+# Change the version when the prompt, the tools or the history change. The note of each session keeps it.
+AGENT_VERSION = 2
+
 SYSTEM = """You are a browser agent. You use a web browser for the user and do the tasks that the user gives you.
 
 At each step you get the current page: the URL, the accessibility tree and a screenshot of the visible part of the page. Elements in the tree have references such as [ref=e12]. Give these references to the tools. The references change when the page changes, so always use the references of the last page.
+
+To save space, the history keeps your notes, your tool calls and their results, but not the earlier pages. You saw each page before you acted on it. The last tool result of each step tells which page was open after the step. Use the current page to check the result of your earlier steps.
+
+Before your tool calls, write one short note: what the current page shows, what changed after your last step, and what you do next.
 
 Do the tasks completely and without questions to the user. The user is not available during the work. If you must give data that the user did not give, invent realistic data. When all tasks are done, call the tool finish."""
 
@@ -65,7 +72,7 @@ def run_episode(model, link, log_path, browser="plain", motion="direct", max_ste
     log_path = Path(log_path)
     log_path.parent.mkdir(parents=True, exist_ok=True)
     started = time.time()
-    summary = {"type": "summary", "link_session": link.rstrip("/").rsplit("/", 1)[-1], "model": model.model,
+    summary = {"type": "summary", "agent": AGENT_VERSION, "link_session": link.rstrip("/").rsplit("/", 1)[-1], "model": model.model,
                "effort": model.effort, "browser": browser, "motion": motion, "steps": 0, "cost": 0.0,
                "input_tokens": 0, "output_tokens": 0, "end": "max_steps", "error": None}
     # The history keeps the answers and the tool results. Only the last request gets the full page.
@@ -115,6 +122,8 @@ def run_episode(model, link, log_path, browser="plain", motion="direct", max_ste
                                             "ts": int(time.time() * 1000)})
                     history.append({"role": "tool", "tool_call_id": call["id"], "content": result})
                 record["url_after"] = web.page.url
+                if calls and not finished:
+                    history[-1]["content"] += "\n" + web.where()
                 write(record)
                 if finished:
                     summary["end"] = "finish"
