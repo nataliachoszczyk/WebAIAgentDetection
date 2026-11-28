@@ -134,3 +134,7 @@
   - 11 Claude runs and 13 runs of 5 small models with the `plain` browser. 28 of 29 Claude runs (with wad-010) did all four tasks. No Claude run triggered a trap.
   - Small models triggered the hidden instructions in 5 of 13 runs.
   - Videos of the agent sessions have the model in the file name.
+- Ran the agent with the webdriver flag hidden (wad-010, #30). See "The `hidden` browser" in `docs/agent.md`:
+  - 11 Claude runs with the `hidden` browser and the `direct` motion, 7 with the `human` motion. All did the four tasks.
+  - The `hidden` browser has `webdriver` = `false` and no `HeadlessChrome`. The WebGL renderer (SwiftShader), the platform and the languages still differ from the people.
+  - The `human` motion gives key presses, mouse paths and only trusted events. It has fewer mouse moves and wheel events than people.

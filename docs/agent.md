@@ -174,3 +174,33 @@ Notes from runs that are not in the study (see `EXCLUDED` in `src/traces.py`):
 - Before the tool fixes, `gpt-4o-mini` typed a number into the hidden field "Fax number" (the trap `honeypot-contact`). Its three later runs did not.
 - `meta-llama/llama-4-scout` wrote its actions as text and called no tool. The guard stopped it after 5 steps. We did not run it again.
 
+
+### The `hidden` browser (wad-010)
+
+The `hidden` browser hides two signs of automation:
+
+| Field of `env` | `plain` | `hidden` | People |
+|---|---|---|---|
+| `webdriver` | `true` | `false` | `false` |
+| `HeadlessChrome` in `ua` | yes | no | no |
+
+The other fields of the browser fingerprint still differ from the people of our study. A real agent in the browser of a user does not have these differences:
+
+- `webgl_renderer` is SwiftShader (a GPU in software) in all agent sessions. No person had it.
+- `platform` is Linux and `languages` is `en-US`, because the agent ran on a Linux laptop. The people had Windows and `pl-PL`.
+
+Thus a detector that uses these fields finds the setup of our agent, not an LLM agent. The detectors of M3 must not use them, or the report must tell this limit.
+
+The behavior in the log:
+
+| Measure (median of the sessions) | `direct` | `human` | People |
+|---|---|---|---|
+| Events | 181 | 1394 | 2253 |
+| `key_down` events | 0 | 297 | 166 |
+| `pointer_move` events for each click | 1.0 | 8.8 | 28 |
+| Events with `trusted` = `false` | 3 | 0 | 0 |
+| `wheel` events | 0 | 6.5 | 41 |
+
+- The `direct` motion fills fields without key presses. Each click comes after one jump of the mouse.
+- The 3 untrusted events of the `direct` motion are `change` events of `select_option`: Playwright sets the value with a script.
+- The `human` motion selects with the keyboard, so all its events are trusted.
