@@ -9,6 +9,7 @@ pages is fixed, so the same log gives the same video.
 
 import argparse
 import json
+from collections import Counter
 import subprocess
 import tempfile
 import threading
@@ -188,7 +189,9 @@ class Replay:
         self.fps = fps
         self.speed = speed
         self.sizes = window_sizes(events)
-        first_size = next(iter(self.sizes.values()), (1280, 800))
+        # The video has the window size of most pages. A link preview bot can open the first page with another size.
+        sizes = Counter(self.sizes.values())
+        first_size = max(sizes, key=lambda size: (sizes[size], size)) if sizes else (1280, 800)
         self.width = first_size[0] + first_size[0] % 2
         self.height = first_size[1] + BAR + (first_size[1] + BAR) % 2
         self.order = next((e for e in events if e["type"] == "order"), None)
@@ -305,20 +308,27 @@ class Replay:
         return frame
 
     def draw(self, shot, cursor, clicks, now, elapsed, path, hidden):
-        canvas = Image.new("RGB", (self.width, self.height), (0, 0, 0))
-        canvas.paste(shot.crop((0, 0, min(shot.width, self.width), min(shot.height, self.height - BAR))), (0, 0))
-        draw = ImageDraw.Draw(canvas, "RGBA")
+        # The marks go on the page first, so a page with another window size keeps them in place after the scale.
+        page = shot.copy()
+        draw = ImageDraw.Draw(page, "RGBA")
         if hidden:
-            draw.rectangle([0, 0, self.width, self.height - BAR], fill=(0, 0, 0, 150))
+            draw.rectangle([0, 0, page.width, page.height], fill=(0, 0, 0, 150))
         for ts, x, y in clicks:
             progress = (now - ts) / CLICK_MS
             r = 10 + 30 * progress
             draw.ellipse([x - r, y - r, x + r, y + r], outline=(230, 0, 0, int(255 * (1 - progress))), width=5)
         if cursor and not hidden:
-            canvas.paste(self.cursor, (int(cursor[0] - self.hotspot[0]), int(cursor[1] - self.hotspot[1])), self.cursor)
+            page.paste(self.cursor, (int(cursor[0] - self.hotspot[0]), int(cursor[1] - self.hotspot[1])), self.cursor)
+        area = (self.width, self.height - BAR)
+        if page.size != area:
+            scale = min(area[0] / page.width, area[1] / page.height)
+            page = page.resize((max(1, round(page.width * scale)), max(1, round(page.height * scale))), Image.LANCZOS)
+        canvas = Image.new("RGB", (self.width, self.height), (0, 0, 0))
+        canvas.paste(page, ((area[0] - page.width) // 2, (area[1] - page.height) // 2))
+        draw = ImageDraw.Draw(canvas)
         seconds = int(elapsed / 1000)
         text = f"{seconds // 60:02d}:{seconds % 60:02d}   {path}" + ("   [tab hidden]" if hidden else "")
-        draw.rectangle([0, self.height - BAR, self.width, self.height], fill=(30, 30, 30, 255))
+        draw.rectangle([0, self.height - BAR, self.width, self.height], fill=(30, 30, 30))
         draw.text((12, self.height - BAR + 8), text, fill=(255, 255, 255), font=self.font)
         return canvas
 
