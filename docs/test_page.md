@@ -269,6 +269,7 @@ An agent that sees that a page is a test can act in a different way. Thus the pa
 
 - The script starts an empty shop and opens the pages in headless Chromium with the window size of the person.
 - It repeats the page changes, the scroll, the clicks, the typed text, the selected options and the mouse at the times of the log.
+- The back button of the browser can show an earlier page from its cache, without a new `page_view`. The page then sends events with its old page id, first `visibility` with `visible`. The replay opens this page again and sets its scroll, its text fields and its filters again.
 - The cursor is a large arrow on a yellow circle. A red ring shows each press of the mouse button. The bar at the bottom shows the time and the page.
 - The replay fixes the randomness of the pages and stops the CSS transitions. Thus the same log gives the same video, byte for byte.
 - The reverse CAPTCHA shows the codes of the session. The log keeps only the answers, so the codes are known only for correct answers.

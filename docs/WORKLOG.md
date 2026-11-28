@@ -114,3 +114,5 @@
   - `src/replay.py` repeats the log in headless Chromium and writes an MP4 file with a large cursor.
   - Two runs on the pilot session gave the same file (same MD5).
   - New requirements: `pillow` and `imageio-ffmpeg`.
+- Fixed the replay after the back button (wad-034, #65). The browser showed the earlier page from its cache, without a new `page_view`, and the video showed the closed page. Now the replay opens the earlier page again with its state.
+- Decision: the logger gets no special event for the back button. The log already shows it: the events of an earlier page id continue, first `visibility` with `visible`. Thus the log format stays the same, and the pilot session stays comparable with the next sessions. Playwright does not use the page cache, so a test of such an event is not possible.

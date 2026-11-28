@@ -114,7 +114,13 @@ INIT_SCRIPT = """
 """
 
 PAGE_ACTIONS = {"scroll", "click", "submit", "input", "change", "focus", "blur"}
+# The state of a page that the replay can set again. Clicks and submits stay out: they can add to the cart again.
+STATE_ACTIONS = {"scroll", "input", "change"}
 POINTER = {"pointer_move", "pointer_down", "pointer_up", "click"}
+
+
+def closing(event):
+    return event["type"] == "page_hide" or (event["type"] == "visibility" and event["state"] == "hidden")
 
 
 def load_session(path):
@@ -242,6 +248,7 @@ class Replay:
              "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "23", "-threads", "1", str(out_path)],
             stdin=subprocess.PIPE)
         current, path, hidden = None, "", False
+        paths, history = {}, {}
         cursor, clicks = None, []
         shot, dirty, moved = None, True, False
         i, frame = 0, 0
@@ -254,10 +261,20 @@ class Replay:
                 if e["type"] == "page_view":
                     # The browser sends "hidden" when a page closes. A new page is visible.
                     current, path, hidden = e["page"], e["path"], False
+                    paths[current], history[current] = path, []
                     self.open(path, current)
+                    dirty = True
+                elif e["page"] != current and e["page"] in paths and not closing(e):
+                    # The back button shows an earlier page from the cache of the browser, without a new page_view.
+                    current, path, hidden = e["page"], paths[e["page"]], False
+                    self.open(path, current)
+                    for old in history[current]:
+                        self.page.evaluate("(e) => window.__replay(e)", old)
                     dirty = True
                 if e["page"] != current:
                     continue
+                if e["type"] in STATE_ACTIONS:
+                    history[current].append(e)
                 if e["type"] in POINTER and "x" in e:
                     cursor = (e["x"], e["y"])
                     moved = True
