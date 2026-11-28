@@ -91,3 +91,7 @@
   - The shop, the logger, the traps and the reverse CAPTCHA work in WebKit.
   - Fixed the logger: the limit on fast events (mouse, wheel, scroll, window size) lost the last event of a series. Now the logger keeps it, so the log has the final position.
   - Fixed two tests: copy and paste use Control on Linux, and Playwright sets `maxTouchPoints` only in Chromium.
+
+## 2026-11-28
+
+- Added `docs/collection.md`: the commands for a collection of human traces, from the start of the containers to the upload of the logs. Two options: a join link for a group or one link for each person.
