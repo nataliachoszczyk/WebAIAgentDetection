@@ -5,6 +5,7 @@ import time
 
 import pytest
 
+from conftest import open_link
 from src.replay import Replay, factor_pair, load_session, patch_captcha
 
 playwright = pytest.importorskip("playwright.sync_api")
@@ -35,8 +36,7 @@ def test_same_log_gives_same_video(shop, tmp_path):
     with playwright.sync_playwright() as p:
         browser = p.chromium.launch()
         page = browser.new_context(viewport={"width": 1000, "height": 700}).new_page()
-        page.goto(f"{url}/s/{code}?next=/product.html?id=ridge-runner")
-        page.wait_for_load_state("networkidle")
+        open_link(page, f"{url}/s/{code}?next=/product.html?id=ridge-runner")
         page.mouse.move(200, 200, steps=5)
         page.click("text=43")
         page.click("#add-to-cart")

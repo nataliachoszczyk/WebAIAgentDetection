@@ -154,11 +154,13 @@ A join link lets a group of people use one link, for example in a group chat. Ea
 
 ### Start and end of a session
 
-1. The first open of the session link sets the cookies and shows the task page (`/start.html`).
+1. A session link or a join link first shows a page with a "Start" button. The press of the button starts the session, sets the cookies and shows the task page (`/start.html`).
 2. If the person opens the link again before the end, the session continues on the home page with the same cart.
 3. The contact message is the last task. The server then closes the session, also if the person did not order. The shopping list tells that all tasks are done.
 4. For 60 s after the end, the server takes the last events of the open page. Then it refuses the events, and the logger stops.
 5. After the end, the link shows "All tasks are done" in the same browser. In a different browser, it shows "This link is not active" (status 410).
+
+Why the "Start" button: chat apps open each link for a preview before the person clicks it. In the first collection, `facebookexternalhit`, `WhatsApp` and a full Chrome browser of Facebook opened one session link before the person. The browser of Facebook ran the logger for 30 s. The person then got the same session as a continuation and did not see the task page. Preview bots do not press buttons, so now they start no session and take no place of a join link.
 
 ## The event logger (wad-004)
 

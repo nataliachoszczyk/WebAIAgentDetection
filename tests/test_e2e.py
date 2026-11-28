@@ -6,6 +6,8 @@ import time
 
 import pytest
 
+from conftest import open_link
+
 playwright = pytest.importorskip("playwright.sync_api")
 
 
@@ -26,7 +28,7 @@ def page(request):
 
 def test_all_tasks(shop, page):
     code = shop["store"].new_session("bot", note="e2e test")
-    page.goto(f"{shop['url']}/s/{code}")
+    open_link(page, f"{shop['url']}/s/{code}")
     assert page.locator("#task-list li").count() == 4
     page.click("#start")
 
@@ -80,7 +82,7 @@ def test_all_tasks(shop, page):
     assert order_event["fields"]["delivery"] == "standard"
     assert by_type["contact"][0]["fields"]["order"] == order
     assert page.locator("#shopping-list .done").count() == 1
-    page.goto(f"{shop['url']}/s/{code}")
+    open_link(page, f"{shop['url']}/s/{code}")
     assert "All tasks are done" in page.inner_text("h1")
 
     # The logger records the behavior on all pages.
@@ -135,7 +137,7 @@ def wait_for_events(path, last_type, timeout=5.0):
 
 def test_traps_are_hidden_from_people(shop, page):
     code = shop["store"].new_session("bot", note="e2e test")
-    page.goto(f"{shop['url']}/s/{code}?next=/product.html?id=ridge-runner")
+    open_link(page, f"{shop['url']}/s/{code}?next=/product.html?id=ridge-runner")
     page.wait_for_selector(".faint-note")
     assert page.locator("[data-trap]").count() == 0
 
@@ -156,7 +158,7 @@ def test_traps_are_hidden_from_people(shop, page):
 
 def test_a_naive_bot_triggers_the_traps(shop, page):
     code = shop["store"].new_session("bot", note="naive bot")
-    page.goto(f"{shop['url']}/s/{code}?next=/product.html?id=ridge-runner")
+    open_link(page, f"{shop['url']}/s/{code}?next=/product.html?id=ridge-runner")
     page.click("[data-size='42']")
     page.click("#add-to-cart")
 
@@ -197,7 +199,7 @@ def test_a_naive_bot_triggers_the_traps(shop, page):
 
 def test_order_check_blocks_wrong_answers_and_records_the_work(shop, page):
     code = shop["store"].new_session("bot", note="order check")
-    page.goto(f"{shop['url']}/s/{code}?next=/product.html?id=tempo-glide")
+    open_link(page, f"{shop['url']}/s/{code}?next=/product.html?id=tempo-glide")
     page.click("[data-size='40']")
     page.click("#add-to-cart")
     page.goto(f"{shop['url']}/checkout.html")
@@ -232,7 +234,7 @@ def test_order_check_blocks_wrong_answers_and_records_the_work(shop, page):
 def test_rendered_pages_do_not_tell_about_the_study(shop, page):
     from tests.test_server import STUDY_WORDS
     code = shop["store"].new_session("bot", note="study words")
-    page.goto(f"{shop['url']}/s/{code}")
+    open_link(page, f"{shop['url']}/s/{code}")
     pages = ["/start.html", "/", "/?category=hiking#catalog", "/product.html?id=ridge-runner", "/cart.html",
              "/checkout.html", "/order.html?id=PS-123456", "/contact.html", "/info.html", "/missing-page"]
     for path in pages:
@@ -264,7 +266,7 @@ def fail_once(page, pattern):
 def test_a_short_network_fault(shop, page):
     code = shop["store"].new_session("bot", note="network fault")
     catalog = fail_once(page, "**/assets/data/products.json")
-    page.goto(f"{shop['url']}/s/{code}?next=/product.html?id=tempo-glide")
+    open_link(page, f"{shop['url']}/s/{code}?next=/product.html?id=tempo-glide")
     page.click("[data-size='40']")  # The page loads the catalog again after the fault.
     page.click("#add-to-cart")
     assert catalog
@@ -287,28 +289,28 @@ def test_a_short_network_fault(shop, page):
 def test_join_link_in_two_browsers(shop, page):
     store = shop["store"]
     secret = store.new_join("human", 2, until=int(time.time() * 1000) + 60_000)
-    page.goto(f"{shop['url']}/join/{secret}")
+    open_link(page, f"{shop['url']}/join/{secret}")
     assert page.locator("#task-list li").count() == 4
     page.click("#start")
     page.wait_for_selector("#shopping-list")
 
     other = page.context.browser.new_context().new_page()
-    other.goto(f"{shop['url']}/join/{secret}")
+    open_link(other, f"{shop['url']}/join/{secret}")
     assert other.locator("#task-list li").count() == 4
     codes = {c["value"] for p in (page, other) for c in p.context.cookies() if c["name"] == "ps_sid"}
     assert len(codes) == 2 and codes == {s["session"] for s in store.join_sessions(secret)}
 
-    page.goto(f"{shop['url']}/join/{secret}")  # the same browser again: the same session
-    assert page.url.endswith("/") and len(store.join_sessions(secret)) == 2
+    open_link(page, f"{shop['url']}/join/{secret}")  # the same browser again: the same session
+    assert page.url.split("#")[0].endswith("/") and len(store.join_sessions(secret)) == 2
     third = page.context.browser.new_context().new_page()
-    third.goto(f"{shop['url']}/join/{secret}")
+    open_link(third, f"{shop['url']}/join/{secret}")
     assert "This link is not active" in third.inner_text("h1")
 
 
 def test_narrow_screen_keeps_the_full_width_for_the_shop(shop, page):
     code = shop["store"].new_session("bot", note="narrow screen")
     page.set_viewport_size({"width": 390, "height": 844})
-    page.goto(f"{shop['url']}/s/{code}?next=/product.html?id=ridge-runner")
+    open_link(page, f"{shop['url']}/s/{code}?next=/product.html?id=ridge-runner")
     page.wait_for_selector("#shopping-list")
     assert page.evaluate("getComputedStyle(document.body).paddingRight") == "0px"
     box = page.locator("#shopping-list").bounding_box()

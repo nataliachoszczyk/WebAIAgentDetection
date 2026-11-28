@@ -18,6 +18,15 @@ def get(url, cookie=None):
         return error
 
 
+def start(url, cookie=None):
+    """Press the start button of a session link or a join link."""
+    request = urllib.request.Request(url, data=b"", headers={"Cookie": cookie} if cookie else {}, method="POST")
+    try:
+        return urllib.request.build_opener(NoRedirect).open(request)
+    except urllib.error.HTTPError as error:
+        return error
+
+
 def post(url, body, cookie=None):
     headers = {"Content-Type": "application/json"}
     if cookie:
@@ -55,7 +64,7 @@ def test_tasks_hide_the_expected_answers(shop):
 
 def test_session_link_sets_cookies(shop):
     code = shop["store"].new_session("human")
-    response = get(f"{shop['url']}/s/{code}")
+    response = start(f"{shop['url']}/s/{code}")
     assert response.status == 302
     assert response.headers["Location"] == "/start.html"
     cookies = response.headers.get_all("Set-Cookie")
@@ -66,8 +75,8 @@ def test_session_link_sets_cookies(shop):
 def test_session_link_rejects_unknown_code_and_open_redirect(shop):
     assert get(shop["url"] + "/s/unknown").status == 404
     code = shop["store"].new_session("agent", model="m")
-    assert get(f"{shop['url']}/s/{code}?next=//evil.example").headers["Location"] == "/start.html"
-    assert get(f"{shop['url']}/s/{code}?next=/cart.html").headers["Location"] == "/cart.html"
+    assert start(f"{shop['url']}/s/{code}?next=//evil.example").headers["Location"] == "/start.html"
+    assert start(f"{shop['url']}/s/{code}?next=/cart.html").headers["Location"] == "/cart.html"
 
 
 def test_order_is_logged_only_for_a_valid_session(shop):
@@ -148,7 +157,7 @@ def test_public_files_do_not_tell_about_the_study(shop):
     for path in paths:
         text = get(shop["url"] + path).read().decode("utf-8")
         assert not STUDY_WORDS.search(text), (path, STUDY_WORDS.search(text))
-    for cookie in get(shop["url"] + "/s/" + shop["store"].new_session("human")).headers.get_all("Set-Cookie"):
+    for cookie in start(shop["url"] + "/s/" + shop["store"].new_session("human")).headers.get_all("Set-Cookie"):
         assert not STUDY_WORDS.search(cookie.split("=")[0])
 
 
@@ -156,7 +165,7 @@ def test_session_continues_and_ends_after_the_contact_message(shop):
     store, url = shop["store"], shop["url"]
     code = store.new_session("human")
     cookie = f"ps_sid={code}"
-    assert get(f"{url}/s/{code}").headers["Location"] == "/start.html"
+    assert start(f"{url}/s/{code}").headers["Location"] == "/start.html"
     # A second open continues the session with the same cart.
     assert get(f"{url}/s/{code}", cookie=cookie).headers["Location"] == "/"
     starts = [e for e in session_events(shop, code) if e["type"] == "session_start"]
@@ -188,7 +197,7 @@ def test_join_link_gives_each_browser_its_own_session(shop):
     store, url = shop["store"], shop["url"]
     secret = store.new_join("human", 2, until=int(time.time() * 1000) + 60_000)
 
-    first = get(f"{url}/join/{secret}")
+    first = start(f"{url}/join/{secret}")
     assert first.status == 302 and first.headers["Location"] == "/start.html"
     code = first.headers["Set-Cookie"].split("ps_sid=")[1].split(";")[0]
     assert store.sessions()[code]["join"] == secret and store.sessions()[code]["label"] == "human"
@@ -196,15 +205,31 @@ def test_join_link_gives_each_browser_its_own_session(shop):
     again = get(f"{url}/join/{secret}", cookie=f"ps_sid={code}")
     assert again.headers["Location"] == "/" and len(store.join_sessions(secret)) == 1
 
-    second = get(f"{url}/join/{secret}")
+    second = start(f"{url}/join/{secret}")
     assert second.status == 302 and len(store.join_sessions(secret)) == 2
-    full = get(f"{url}/join/{secret}")
-    assert full.status == 410 and b"no longer active" in full.read()
+    full = start(f"{url}/join/{secret}")
+    assert full.status == 410
+    assert get(f"{url}/join/{secret}").status == 410 and b"no longer active" in full.read()
 
     store.mark(code, "ordered")
     store.mark(code, "closed")
     assert b"All tasks are done" in get(f"{url}/join/{secret}", cookie=f"ps_sid={code}").read()
     assert get(f"{url}/join/unknown").status == 404
+
+
+def test_link_preview_bot_starts_no_session(shop):
+    # Chat apps open each link for a preview. Only the start button starts a session or takes a place of a join link.
+    import time
+    store, url = shop["store"], shop["url"]
+    code = store.new_session("human")
+    secret = store.new_join("human", 1, until=int(time.time() * 1000) + 60_000)
+    for link in (f"{url}/s/{code}", f"{url}/join/{secret}"):
+        page = get(link)
+        assert page.status == 200 and b'id="begin"' in page.read()
+        assert not page.headers.get_all("Set-Cookie")
+    assert store.state(code, "started") is None and session_events(shop, code) == []
+    assert store.join_sessions(secret) == []
+    assert start(f"{url}/join/{secret}").status == 302
 
 
 def test_expired_join_link_is_closed(shop):

@@ -242,6 +242,9 @@ class Replay:
     def run(self, code, out_path):
         self.allow_navigation = True
         self.page.goto(f"{self.base}/s/{code}", wait_until="networkidle")
+        with self.page.expect_navigation():
+            self.page.click("#begin")
+        self.page.wait_for_load_state("networkidle")
         self.allow_navigation = False
         client = [e for e in self.events if e.get("src") == "client"]
         start, end = client[0]["ts"], client[-1]["ts"] + 1000

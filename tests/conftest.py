@@ -15,3 +15,12 @@ def shop(tmp_path):
     yield {"url": f"http://{host}:{port}", "store": server.RequestHandlerClass.store, "data": tmp_path}
     server.shutdown()
     server.server_close()
+
+
+def open_link(page, url):
+    """Open a session link or a join link like a person: the link shows a start button first."""
+    page.goto(url)
+    if page.locator("#begin").count():
+        with page.expect_navigation():
+            page.click("#begin")
+    page.wait_for_load_state("networkidle")

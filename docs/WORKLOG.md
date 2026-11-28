@@ -116,3 +116,4 @@
 - Collected the first human traces through a join link and a session link: 3 new sessions, all with orders and contact messages, no gaps in `seq` (wad-011, #31).
   - The tunnel failed some times. One person opened the link 7 times, and one contact page loaded without JavaScript. Mark this session as "network fault" in wad-012.
 - Changed the tunnel to HTTP/2 (wad-001, #21). See "Protocol of the tunnel" in `docs/test_page.md`. A test of 10 minutes: after a network break of 8 s, HTTP/2 worked immediately, QUIC gave 5 more errors.
+- Added a "Start" button before each session (wad-003, #23). See "Start and end of a session" in `docs/test_page.md`. Link preview bots of Messenger and WhatsApp opened a session link before the person, and a browser of Facebook ran the logger for 30 s. Now a link starts a session only after the press of the button. A new test checks that a preview bot starts no session and takes no place of a join link.
