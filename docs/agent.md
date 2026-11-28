@@ -79,24 +79,7 @@ A model can give more than one tool call in one answer. The agent then does the 
 
 ### Limits and the loop guard
 
-Do not let a run repeat itself without an end. The budget of the project is 35 USD.
-
-| Limit | Value | Option |
-|---|---|---|
-| Steps of one run | 50 | `--max-steps` |
-| Cost of one run | 1 USD | `--max-cost` |
-| Cost of all runs of one command | 5 USD | `--budget`: the command does not start a run that can pass it |
-| Runs in a row that do not finish | 2 | the command stops |
-
-The loop guard (`LoopGuard` in `src/agent/agent.py`) acts like the guards of agent frameworks. First the model gets a note from the browser that tells it to change its plan. If it continues, the run stops:
-
-| Case | Note | Stop (end of the run) |
-|---|---|---|
-| The same action on the same page | at the 3rd time | at the 5th time (`loop`) |
-| All tool calls of a step fail | after 3 steps in a row | after 5 steps in a row (`errors`) |
-| No new page or new number of items in the cart | after 12 steps | after 20 steps (`no_progress`) |
-
-An action is the same if it has the same tool, the same arguments and the same element. The guard compares the line of the element in the tree, because the references change after each reload.
+See `docs/agent_rules.md`: the rules of the study for the agent, the limits of a run, the loop guard and the order of the models.
 
 ### Browsers and motions
 
