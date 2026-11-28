@@ -68,6 +68,14 @@ At each step, the model gets the URL, the title, the scroll position, the access
 | `wait` | Wait some seconds. |
 | `finish` | End the session with a summary for the user. |
 
+The tools accept small mistakes of a model, as agent frameworks do:
+
+- A reference with a wrong frame part (`e17` or `e1e17` for `f1e17`) gets the full reference from the last tree, if only one element has this number.
+- Key names in lowercase (`enter`) get the name of Playwright (`Enter`).
+- The tools ignore arguments that they do not have, for example `go_back` with `ref`.
+
+The first runs of small models (2026-11-28) had these mistakes, and then the guard stopped them. No run of the Claude models with version 2 had a tool error, so the change does not change their runs.
+
 A model can give more than one tool call in one answer. The agent then does the calls in the given order. If a tool fails, the model gets the error text and can try again.
 
 ### History and costs

@@ -195,3 +195,23 @@ def test_a_run_in_a_loop_stops(shop, tmp_path):
     steps = [json.loads(line) for line in (tmp_path / "steps.jsonl").read_text().splitlines()]
     assert any("warning" in s for s in steps)
     assert any("Note from the browser" in str(m.get("content")) for m in model.requests[-1])
+
+
+def test_tolerant_references_keys_and_arguments():
+    from src.agent.browser import Browser
+
+    web = Browser.__new__(Browser)
+    web.tree = '- button "Start shopping" [ref=f1e17]\n- link "Cart" [ref=f1e170]\n- button "Go" [ref=e5]'
+    assert web.full_ref("f1e17") == "f1e17"
+    assert web.full_ref("e17") == "f1e17" and web.full_ref("e1e17") == "f1e17" and web.full_ref("[ref=e17]") == "f1e17"
+    assert web.full_ref("e5") == "e5" and web.full_ref("f2e5") == "e5"
+    assert web.describe("e1e17") == 'button "Start shopping"'
+
+
+def test_small_model_mistakes(shop, tmp_path):
+    code = shop["store"].new_session("agent", "scripted", "test")
+    script = [lambda tree: ("click", {"ref": "e1e" + ref(tree, "button", "Start").split("e")[-1]}),
+              lambda tree: ("go_back", {"ref": "e1"}), lambda tree: ("press_key", {"key": "enter"})]
+    run_episode(ScriptedModel(script), f"{shop['url']}/s/{code}", tmp_path / "steps.jsonl", max_steps=5)
+    steps = [json.loads(line) for line in (tmp_path / "steps.jsonl").read_text().splitlines()]
+    assert [s["calls"][0]["result"][:5] for s in steps[:3]] == ["Click", "Went ", "Press"], steps

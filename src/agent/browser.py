@@ -1,6 +1,7 @@
 """The browser of the agent: what the model sees and what its tools do. See docs/agent.md."""
 
 import base64
+import inspect
 import math
 import os
 import random
@@ -19,6 +20,12 @@ BROWSERS = ("plain", "hidden")
 # Motions: `direct` uses the Playwright actions as an agent framework does (one jump of the mouse,
 # fill without key presses). `human` moves the mouse in steps and types key by key with typos.
 MOTIONS = ("direct", "human")
+
+# Key names as models write them, and the names of Playwright.
+KEYS = {"enter": "Enter", "return": "Enter", "tab": "Tab", "escape": "Escape", "esc": "Escape",
+        "backspace": "Backspace", "space": "Space", "delete": "Delete", "arrowdown": "ArrowDown",
+        "arrowup": "ArrowUp", "arrowleft": "ArrowLeft", "arrowright": "ArrowRight", "pagedown": "PageDown",
+        "pageup": "PageUp", "home": "Home", "end": "End", "down": "ArrowDown", "up": "ArrowUp"}
 
 # Neighbor keys for typos of the `human` motion.
 ROWS = ["qwertyuiop", "asdfghjkl", "zxcvbnm"]
@@ -110,8 +117,12 @@ class Browser:
 
     def act(self, name, args):
         """Do one tool call. Return a short text result for the model."""
+        method = getattr(self, "tool_" + name)
+        # Small models add arguments that a tool does not have. An agent framework ignores them.
+        known = inspect.signature(method).parameters
+        args = {k: v for k, v in args.items() if k in known}
         try:
-            result = getattr(self, "tool_" + name)(**args)
+            result = method(**args)
         except (PlaywrightError, TypeError, ValueError) as error:
             first = str(error).strip().splitlines()[0] if str(error).strip() else type(error).__name__
             return f"Error: {first[:300]}"
@@ -120,20 +131,27 @@ class Browser:
 
     def describe(self, ref):
         """The line of the element in the last tree, without references. It stays the same after a reload."""
-        ref = str(ref).strip("[]").removeprefix("ref=")
+        ref = self.full_ref(ref)
         for line in self.tree.splitlines():
-            if f"[ref={ref}]" in line or re.search(rf"\[ref=f\d+{re.escape(ref)}\]", line):
+            if f"[ref={ref}]" in line:
                 return re.sub(r"\s*\[ref=\w+\]", "", line).strip(" -:")
         return ref
 
     def element(self, ref):
-        # Models sometimes drop the frame part of a reference (e17 for f1e17). The last tree tells the full one.
-        ref = str(ref).strip("[]").removeprefix("ref=")
-        if f"[ref={ref}]" not in self.tree:
-            full = re.findall(rf"\[ref=(f\d+{re.escape(ref)})\]", self.tree)
+        return self.page.locator(f"aria-ref={self.full_ref(ref)}")
+
+    def full_ref(self, ref):
+        """Models sometimes change the frame part of a reference (e17 or e1e17 for f1e17).
+        The element number at the end and the last tree give the full reference, as an agent framework does."""
+        ref = str(ref).strip().strip("[]").removeprefix("ref=")
+        if f"[ref={ref}]" in self.tree:
+            return ref
+        number = re.search(r"(e\d+)$", ref)
+        if number:
+            full = sorted(set(re.findall(rf"\[ref=((?:f\d+)?{number.group(1)})\]", self.tree)))
             if len(full) == 1:
-                ref = full[0]
-        return self.page.locator(f"aria-ref={ref}")
+                return full[0]
+        return ref
 
     # Tools. The names and the arguments are the same as in TOOLS of src/agent/agent.py.
 
@@ -198,6 +216,7 @@ class Browser:
         return f"Scrolled {direction}" + (f" in {ref}." if ref else ".")
 
     def tool_press_key(self, key):
+        key = KEYS.get(str(key).strip().lower(), key)
         self.page.keyboard.press(key)
         return f"Pressed {key}."
 
