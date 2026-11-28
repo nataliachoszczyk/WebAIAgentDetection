@@ -5,14 +5,15 @@ import json
 import subprocess
 from pathlib import Path
 
-from .agent import run_episode
+from .agent import AGENT_VERSION, run_episode
 from .browser import BROWSERS, MOTIONS
 from .model import Model, spend
 
 
 def new_link(args):
     """Make a session link with the label `agent`. The note keeps the setup of the run."""
-    note = f"browser={args.browser} motion={args.motion} effort={args.effort or 'none'} run={args.note}"
+    note = (f"browser={args.browser} motion={args.motion} effort={args.effort or 'none'} agent={AGENT_VERSION}"
+            f" run={args.note}")
     if args.sessions == "docker":
         command = ["docker", "compose", "exec", "-T", "shop", "/usr/bin/python3", "-m", "src.shop", "new-session",
                    "--label", "agent", "--model", args.model, "--note", note, "--base-url", args.base_url]
@@ -38,8 +39,8 @@ def main():
     run.add_argument("--base-url", default="http://localhost:8000", help="the address of the shop in the links")
     run.add_argument("--note", default="dev", help="the name of the group of runs, for example wad-009")
     run.add_argument("--runs", type=int, default=1)
-    run.add_argument("--max-steps", type=int, default=80)
-    run.add_argument("--max-cost", type=float, default=2.0, help="USD for one run")
+    run.add_argument("--max-steps", type=int, default=50)
+    run.add_argument("--max-cost", type=float, default=1.0, help="USD for one run")
     run.add_argument("--budget", type=float, default=5.0, help="USD for all runs of this command")
     run.add_argument("--out", default="data/agent", help="the folder for the step logs")
     args = parser.parse_args()
@@ -48,7 +49,7 @@ def main():
         print(json.dumps(spend()))
         return
     model = Model(args.model, effort=args.effort or None, api=args.api)
-    total = 0.0
+    total, failed = 0.0, 0
     for i in range(args.runs):
         if total + args.max_cost > args.budget:
             print(f"Stop: the next run can pass the budget ({total:.3f} of {args.budget} USD used).")
@@ -59,6 +60,10 @@ def main():
         summary = run_episode(model, link, Path(args.out) / f"{session}.jsonl", args.browser, args.motion,
                               args.max_steps, args.max_cost, seed=session)
         total += summary["cost"]
+        failed = 0 if summary["end"] == "finish" else failed + 1
+        if failed >= 2:
+            print(f"Stop: {failed} runs in a row did not finish. Look at the step logs before more runs.")
+            break
         print(json.dumps({k: summary.get(k) for k in ("end", "steps", "cost", "seconds", "error", "finish")},
                          ensure_ascii=False), flush=True)
     print(f"Cost of all runs: {total:.4f} USD")
