@@ -105,3 +105,6 @@
   - Cause: the browser limit of 64 KB for `keepalive` requests in flight. On a slow network, the browser refused all new requests.
   - Fix: the logger sends without `keepalive`, sends a failed batch again and keeps the unconfirmed events in `sessionStorage`. The server ignores doubled events.
   - A test with a slow server: the old logger kept 428 of 914 events, the new logger kept all 914.
+- Collected the first human traces through a join link and a session link: 3 new sessions, all with orders and contact messages, no gaps in `seq` (wad-011, #31).
+  - The tunnel failed some times. One person opened the link 7 times, and one contact page loaded without JavaScript. Mark this session as "network fault" in wad-012.
+- Changed the tunnel to HTTP/2 (wad-001, #21). See "Protocol of the tunnel" in `docs/test_page.md`. A test of 10 minutes: after a network break of 8 s, HTTP/2 worked immediately, QUIC gave 5 more errors.
