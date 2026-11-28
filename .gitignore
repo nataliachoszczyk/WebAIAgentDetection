@@ -33,6 +33,7 @@ playwright-report/
 test-results/
 *.har
 *.webm
+*.mp4
 *.trace.zip
 
 # OS files

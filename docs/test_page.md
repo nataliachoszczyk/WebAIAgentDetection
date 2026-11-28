@@ -262,3 +262,20 @@ An agent that sees that a page is a test can act in a different way. Thus the pa
 - The panel with the tasks is "Your shopping list". The first page of a session is "Your tasks" (`/start.html`).
 - The shop has the address of a warehouse that does not exist: Podeszwowa 6, 22-100 Chełm.
 - People know about the study from the invitation. The task page tells them that the shop records what they type and send in the forms.
+
+## Replay of a session (wad-034)
+
+`src/replay.py` makes one video for each session from the event log only. Run: `python -m src.replay <data folder> [--session CODE] [--out FOLDER] [--fps 10] [--speed 1]`.
+
+- The script starts an empty shop and opens the pages in headless Chromium with the window size of the person.
+- It repeats the page changes, the scroll, the clicks, the typed text, the selected options and the mouse at the times of the log.
+- The back button of the browser can show an earlier page from its cache, without a new `page_view`. The page then sends events with its old page id, first `visibility` with `visible`. The replay opens this page again and sets its scroll, its text fields and its filters again.
+- The cursor is a large arrow on a yellow circle. A red ring shows each press of the mouse button. The bar at the bottom shows the time and the page.
+- The replay fixes the randomness of the pages and stops the CSS transitions. Thus the same log gives the same video, byte for byte.
+- The reverse CAPTCHA shows the codes of the session. The log keeps only the answers, so the codes are known only for correct answers.
+
+Limits:
+
+- The video is a reconstruction, not a screen recording. A native drop-down list, the scroll inside a box and the browser window around the page are not visible.
+- A page that the person had in a second tab is not in the video.
+- A session of 6 minutes takes about 4.5 minutes on a laptop and gives a file of about 2 MB.

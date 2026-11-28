@@ -9,3 +9,5 @@ jupyter
 playwright
 kaggle
 pytest
+pillow
+imageio-ffmpeg
