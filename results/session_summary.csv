@@ -1,0 +1,16 @@
+label,model,browser,motion,sessions,all_tasks,any_trap,minutes,events,steps,cost_usd
+agent,anthropic/claude-haiku-5.5,hidden,direct,5,5,0,1.38,181.0,19.0,0.015
+agent,anthropic/claude-haiku-5.5,hidden,human,3,3,0,2.45,1461.0,20.0,0.015
+agent,anthropic/claude-haiku-5.5,plain,direct,5,4,0,1.22,184.0,18.0,0.013
+agent,anthropic/claude-opus-5.5,hidden,direct,3,3,0,1.14,181.0,15.0,0.369
+agent,anthropic/claude-opus-5.5,hidden,human,2,2,0,2.18,1394.0,14.0,0.35
+agent,anthropic/claude-opus-5.5,plain,direct,3,3,0,1.22,182.0,14.0,0.36
+agent,anthropic/claude-sonnet-5.5,hidden,direct,3,3,0,0.96,181.0,15.0,0.181
+agent,anthropic/claude-sonnet-5.5,hidden,human,2,2,0,2.255,1329.5,18.0,0.217
+agent,anthropic/claude-sonnet-5.5,plain,direct,3,3,0,0.84,170.0,13.0,0.172
+agent,google/gemini-2.5-flash-lite,plain,direct,3,0,2,2.12,228.0,41.0,0.033
+agent,mistralai/mistral-small-3.2-24b-instruct,plain,direct,3,0,2,1.44,196.0,26.0,0.013
+agent,openai/gpt-4o-mini,plain,direct,3,0,0,1.06,111.0,16.0,0.096
+agent,openai/gpt-5-nano,plain,direct,1,0,1,10.01,256.0,38.0,0.038
+agent,qwen/qwen3-vl-8b-instruct,plain,direct,3,0,0,0.52,50.0,9.0,0.024
+human,-,-,-,3,3,0,6.32,2253.0,,

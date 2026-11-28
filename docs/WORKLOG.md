@@ -117,3 +117,34 @@
   - The tunnel failed some times. One person opened the link 7 times, and one contact page loaded without JavaScript. Mark this session as "network fault" in wad-012.
 - Changed the tunnel to HTTP/2 (wad-001, #21). See "Protocol of the tunnel" in `docs/test_page.md`. A test of 10 minutes: after a network break of 8 s, HTTP/2 worked immediately, QUIC gave 5 more errors.
 - Added a "Start" button before each session (wad-003, #23). See "Start and end of a session" in `docs/test_page.md`. Link preview bots of Messenger and WhatsApp opened a session link before the person, and a browser of Facebook ran the logger for 30 s. Now a link starts a session only after the press of the button. A new test checks that a preview bot starts no session and takes no place of a join link.
+- Got the access to the models (wad-007, #27). See "Access to the models" in `docs/agent.md`:
+  - The agent uses the OpenRouter key from the course (35 USD for the full project). The Kaggle Model Proxy is the second option.
+  - `src/agent/model.py` calls OpenRouter or the Kaggle Model Proxy with the same code and gives the cost of each request.
+  - `claude-haiku-5.5`, `claude-sonnet-5.5` and `claude-opus-5.5` read a screenshot and called a tool with the effort `medium`.
+- Made the browser agent (wad-008, #28). See "The agent" in `docs/agent.md`:
+  - Our own agent with Playwright: the model gets the accessibility tree for AI agents and a screenshot, and uses 9 tools.
+  - Two browsers (`plain`, `hidden`) and two motions (`direct`, `human`). The `hidden` browser hides the webdriver flag and the headless mark.
+  - The history stays the same between requests, so the model API reads it from the cache.
+  - Tests with a scripted model do all four tasks without the API. 105 tests pass.
+  - Two runs of `claude-haiku-5.5` on a local shop did all four tasks for 0.015 USD each.
+- Ran the agent on the public shop (wad-009, #29). See "Runs of the agent" in `docs/agent.md`:
+  - Version 2 of the agent: the history has the page after each step, and the model writes a note before its tool calls. Without them, one Sonnet run took 79 steps and 1.03 USD.
+  - A loop guard and limits stop runs that repeat themselves. `docs/agent_rules.md` gives all rules and limits for the agents.
+  - The tools accept small mistakes of models (short references, key names, extra arguments).
+  - 11 Claude runs and 13 runs of 5 small models with the `plain` browser. 28 of 29 Claude runs (with wad-010) did all four tasks. No Claude run triggered a trap.
+  - Small models triggered the hidden instructions in 5 of 13 runs.
+  - Videos of the agent sessions have the model in the file name.
+- Ran the agent with the webdriver flag hidden (wad-010, #30). See "The `hidden` browser" in `docs/agent.md`:
+  - 11 Claude runs with the `hidden` browser and the `direct` motion, 7 with the `human` motion. All did the four tasks.
+  - The `hidden` browser has `webdriver` = `false` and no `HeadlessChrome`. The WebGL renderer (SwiftShader), the platform and the languages still differ from the people.
+  - The `human` motion gives key presses, mouse paths and only trusted events. It has fewer mouse moves and wheel events than people.
+- Defined the sessions of the study (wad-011, #31). See `docs/traces.md`:
+  - `src/traces.py` holds the rules and the list `EXCLUDED` with the reason of each exclusion. All analysis code reads the sessions from it.
+  - 3 of 4 human sessions are in the study. Session `_1QnFCzrsUVW` is excluded (link preview bots and tunnel faults).
+  - The aim is at least 15 people: with n people and no false alarm, the upper limit of the 95% interval of the FPR is about 3/n.
+- Checked the collected logs (wad-012, #32). See "The check of the logs" in `docs/traces.md`:
+  - `python -m src.traces` checks each session and writes `results/log_check.csv` and `results/session_summary.csv`.
+  - 3 human and 42 agent sessions of the study have no gap, no unknown field and no late event.
+  - A read by hand of one session of each model agreed with the step logs of the agent.
+- Uploaded the traces of 2026-11-28 to the private Kaggle dataset `jankombajn/wad-traces` (one zip file with `shop/` and `agent/`). See "Where the data is" in `docs/traces.md`.
+- Finished the collection of traces from agents and people (wad-030, #50). The spend of the OpenRouter key after wad-030 is 6.50 USD of 35 USD.
