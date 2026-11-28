@@ -173,8 +173,8 @@ class ShopHandler(BaseHTTPRequestHandler):
     def send_contact(self, body):
         self.record([{"type": "contact", "fields": body.get("fields", {})}])
         session = self.session()
-        # The contact message after the order is the last task. The session then ends.
-        if session and self.store.state(session, "ordered") is not None:
+        # The contact message is the last task, also when the person did not order.
+        if session:
             self.store.mark(session, "closed")
         return self.send_json({"ok": True})
 

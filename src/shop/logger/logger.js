@@ -12,6 +12,11 @@
   const ENDPOINT = "/api/events";
   const FLUSH_MS = 2000;
   const MAX_QUEUE = 100;
+  const MAX_SEND = 200;
+  const SEND_TIMEOUT_MS = 15000;
+  // A beacon must stay below the browser limit of 64 KB for all beacons in flight.
+  const MAX_BEACON_BYTES = 50000;
+  const UNSENT = "ps_unsent_";
   const THROTTLE = { pointer_move: 50, wheel: 100, scroll: 100, resize: 250 };
   const SELECTABLE = new Set(["checkbox", "radio"]);
   // The server keeps at most 300 characters of a string.
@@ -20,6 +25,8 @@
   const page = Math.random().toString(36).slice(2, 10);
   let seq = 0;
   let queue = [];
+  // The events of the request in flight. They go back to the queue if the request fails.
+  let sending = [];
   // The server refuses the events after the end of the session. Then the logger stops.
   let stopped = false;
   const lastTime = {};
@@ -60,18 +67,72 @@
     push(type, t, data);
   }
 
-  function flush(final = false) {
-    if (!queue.length || stopped) return;
-    const body = JSON.stringify({ events: queue });
-    queue = [];
-    // At the end of a page, only sendBeacon is sure to reach the server.
-    if (final && navigator.sendBeacon) {
-      navigator.sendBeacon(ENDPOINT, new Blob([body], { type: "application/json" }));
-      return;
+  // The unconfirmed events stay in sessionStorage. If this page closes before they arrive, the next page sends them.
+  function remember() {
+    try {
+      const unsent = sending.concat(queue);
+      if (unsent.length) sessionStorage.setItem(UNSENT + page, JSON.stringify(unsent));
+      else sessionStorage.removeItem(UNSENT + page);
+    } catch {
+      // The storage can be full or blocked. Then only the requests keep the events.
     }
-    fetch(ENDPOINT, { method: "POST", headers: { "Content-Type": "application/json" }, body, keepalive: true })
-      .then((response) => { if (response.status === 403) stopped = true; })
-      .catch(() => {});
+  }
+
+  function flush(final = false) {
+    if (stopped) return;
+    if (final) return sendBeacons();
+    if (sending.length || !queue.length) return;
+    sending = queue.splice(0, MAX_SEND);
+    remember();
+    // No keepalive here: a slow network fills the keepalive limit, and then the browser refuses all new requests.
+    fetch(ENDPOINT, { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ events: sending }), signal: AbortSignal.timeout(SEND_TIMEOUT_MS) })
+      .then((response) => {
+        if (response.status === 403) stopped = true;
+        // 400 is a bad batch. A retry cannot help it.
+        return response.ok || response.status === 400 || response.status === 403;
+      })
+      .catch(() => false)
+      .then((done) => {
+        if (!done) queue = sending.concat(queue);
+        sending = [];
+        if (stopped) queue = [];
+        remember();
+        if (done && queue.length >= MAX_QUEUE) flush();
+      });
+  }
+
+  // At the end of a page, only sendBeacon is sure to reach the server. A beacon can still fail on the network,
+  // so the events stay in sessionStorage until a fetch confirms them. The server ignores the events that it has already.
+  function sendBeacons() {
+    remember();
+    let chunk = [];
+    let size = 0;
+    const send = () => {
+      if (chunk.length) navigator.sendBeacon?.(ENDPOINT, new Blob([JSON.stringify({ events: chunk })], { type: "application/json" }));
+      chunk = [];
+      size = 0;
+    };
+    for (const event of sending.concat(queue)) {
+      const bytes = JSON.stringify(event).length + 1;
+      if (chunk.length && (size + bytes > MAX_BEACON_BYTES || chunk.length >= MAX_SEND)) send();
+      chunk.push(event);
+      size += bytes;
+    }
+    send();
+  }
+
+  // Send the events that an earlier page of this tab could not send.
+  function takeUnsent() {
+    try {
+      for (const key of Object.keys(sessionStorage)) {
+        if (!key.startsWith(UNSENT) || key === UNSENT + page) continue;
+        queue.push(...JSON.parse(sessionStorage.getItem(key)));
+        sessionStorage.removeItem(key);
+      }
+    } catch {
+      // A damaged entry is lost. The other events still go.
+    }
   }
 
   // A short, stable description of an element. The typed text is only in the input events.
@@ -192,6 +253,7 @@
     flush(true);
   });
 
+  takeUnsent();
   emit("page_view", { title: document.title, referrer: document.referrer, time_origin: Math.round(performance.timeOrigin) });
   // The fingerprint needs a WebGL context. Make it after the page load, so it does not delay the page.
   addEventListener("load", () => setTimeout(() => emit("env", { env: environment() }), 0), { once: true });

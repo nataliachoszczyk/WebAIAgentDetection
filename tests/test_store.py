@@ -64,6 +64,18 @@ def test_server_events_get_a_time(tmp_path):
     assert line["ts"] == line["recv"]
 
 
+def test_store_ignores_an_event_that_arrives_again(tmp_path):
+    # The logger sends an unconfirmed event again. The file must keep it once, also after a restart of the server.
+    code = Store(tmp_path).new_session("human")
+    event = {"type": "click", "page": "p1", "seq": 0, "t": 1, "ts": 1, "path": "/"}
+    assert Store(tmp_path).append(code, [event]) == 1
+    store = Store(tmp_path)
+    assert store.append(code, [event, {**event, "seq": 1}]) == 1
+    assert store.append(code, [{**event, "page": "p2"}]) == 1
+    lines = (tmp_path / "events" / f"{code}.jsonl").read_text().splitlines()
+    assert [(json.loads(x)["page"], json.loads(x)["seq"]) for x in lines] == [("p1", 0), ("p1", 1), ("p2", 0)]
+
+
 def test_join_link_has_a_limit_and_an_end(tmp_path):
     import time
     store = Store(tmp_path)

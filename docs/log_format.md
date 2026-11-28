@@ -22,7 +22,7 @@ The server writes all files into one data folder (default `data/shop/`):
   Later lines of a session add its states, each with a Unix time in ms:
   - `started`: the first open of the session link.
   - `ordered`: the first order.
-  - `closed`: the first contact message after the order. This is the last task, so the session ends.
+  - `closed`: the first contact message. This is the last task, so the session ends.
 - `joins.jsonl`: one line for each join link. Fields: `join` (the secret of the link), `label`, `model`, `note`, `max` (the maximum number of sessions), `until` and `created` (Unix time in ms).
 - `events/<session>.jsonl`: the events of one session, one JSON object on each line, in the order of arrival.
 

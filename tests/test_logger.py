@@ -195,6 +195,32 @@ def test_every_event_arrives(shop, browser):
     assert count(events, "key_down", target="textarea#c-message") == 120
 
 
+def test_failed_requests_lose_no_event(shop, browser):
+    # Through a public tunnel, requests can fail for some seconds. The logger must send the events again.
+    s = Session(shop, browser, "/contact.html")
+    s.page.route("**/api/events", lambda route: route.abort())
+    s.page.click("#c-message")
+    s.page.keyboard.type("a" * 150)
+    s.page.wait_for_timeout(2500)
+    # The beacons of the page end also fail. The next page sends the events from sessionStorage.
+    s.open("/cart.html")
+    s.page.unroute("**/api/events")
+    # WebKit reports each blocked request as a page error. Only the errors after the block count.
+    s.errors.clear()
+    s.events(lambda found: count(found, "key_down", target="textarea#c-message") == 150)
+    events = s.leave_and_read(pages=2)
+
+    by_page = {}
+    for event in of_client(events):
+        by_page.setdefault(event["page"], []).append(event)
+    closed = [items for items in by_page.values() if any(e["type"] == "page_hide" for e in items)]
+    assert len(closed) == 2
+    for items in closed:
+        seqs = sorted(e["seq"] for e in items)
+        assert seqs == list(range(len(seqs))), "an event is lost or doubled"
+    assert count(events, "key_down", target="textarea#c-message") == 150
+
+
 def of_client(events):
     return [e for e in events if e["src"] == "client"]
 

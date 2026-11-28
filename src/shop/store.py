@@ -22,6 +22,7 @@ class Store:
         # Reentrant, because a join link makes a session while it holds the lock.
         self._lock = threading.RLock()
         self._cache = {}
+        self._seen = {}
 
     def _write(self, path, record):
         with self._lock, path.open("a", encoding="utf-8") as f:
@@ -101,19 +102,39 @@ class Store:
         closed = self.state(code, "closed")
         return closed is None or time.time() * 1000 <= closed + self.grace_ms
 
+    def _seen_events(self, session, path):
+        """Return the (page, seq) pairs in the file of the session. The logger can send an event two times."""
+        seen = self._seen.get(session)
+        if seen is None:
+            seen = set()
+            if path.exists():
+                with path.open(encoding="utf-8") as f:
+                    for line in f:
+                        record = json.loads(line)
+                        if "page" in record and "seq" in record:
+                            seen.add((record["page"], record["seq"]))
+            self._seen[session] = seen
+        return seen
+
     def append(self, session, events, source="client"):
         """Add the events to the file of the session. The server sets the session and the time."""
         received = int(time.time() * 1000)
-        lines = []
-        for event in events:
-            record = {"v": FORMAT_VERSION, "session": session, "src": source, "recv": received}
-            if source == "server":
-                record["ts"] = received
-            record.update(event)
-            lines.append(json.dumps(record, ensure_ascii=False) + "\n")
         path = self.events_dir / f"{session}.jsonl"
-        with self._lock, path.open("a", encoding="utf-8") as f:
-            f.writelines(lines)
+        with self._lock:
+            if source == "client":
+                seen = self._seen_events(session, path)
+                events = [e for e in events if (e.get("page"), e.get("seq")) not in seen]
+                seen.update((e.get("page"), e.get("seq")) for e in events)
+            lines = []
+            for event in events:
+                record = {"v": FORMAT_VERSION, "session": session, "src": source, "recv": received}
+                if source == "server":
+                    record["ts"] = received
+                record.update(event)
+                lines.append(json.dumps(record, ensure_ascii=False) + "\n")
+            with path.open("a", encoding="utf-8") as f:
+                f.writelines(lines)
+        return len(events)
 
 
 def load_events(data_dir):

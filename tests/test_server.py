@@ -162,11 +162,9 @@ def test_session_continues_and_ends_after_the_contact_message(shop):
     starts = [e for e in session_events(shop, code) if e["type"] == "session_start"]
     assert [e["again"] for e in starts] == [False, True]
 
-    post(url + "/api/contact", {"fields": {"message": "before the order"}}, cookie=cookie)
-    assert store.state(code, "closed") is None  # The order comes first.
-    post(url + "/api/order", {"items": [{"product": "ridge-runner"}]}, cookie=cookie)
-    post(url + "/api/contact", {"fields": {"message": "after the order"}}, cookie=cookie)
-    assert store.state(code, "ordered") and store.state(code, "closed")
+    # A person can skip the order. The contact message still ends the session.
+    post(url + "/api/contact", {"fields": {"message": "no order"}}, cookie=cookie)
+    assert store.state(code, "ordered") is None and store.state(code, "closed")
     assert json.load(get(url + "/api/tasks", cookie=cookie))["done"] is True
 
     batch = {"events": [{"type": "scroll", "seq": 0, "t": 1, "sx": 0, "sy": 10}]}

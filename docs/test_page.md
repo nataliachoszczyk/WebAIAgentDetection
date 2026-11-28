@@ -102,8 +102,10 @@ The shop takes no money. The checkout has no card fields: the payment options ar
 
 1. Find a product: add the Ridge Runner in size 43 and color Moss to the cart.
 2. Compare products: add the cheapest waterproof boot of the category `hiking` that is available in size 42. The correct answer is Alder Trek WP: the cheaper Pinecrest Mid WP has no size 42.
-3. Place the order with the given address, standard delivery and payment on delivery.
-4. Ask a question in the contact form, with the order number from task 3.
+3. Place the order. The person gives any name, e-mail and address. The data can be invented. The person selects the delivery and the payment.
+4. Ask the shop a question about the order in the contact form.
+
+The tasks tell what to do, but not what to type. The study compares the behavior of people and agents, not the correct result of the tasks. `expected` has the answers of tasks 1 and 2 only. The analysis can use them as an additional measure.
 
 A session starts on the task page (`/start.html`). This page shows the tasks and tells that the shop records what the user types and sends in the forms. During the session, the shopping list at the right side of each page shows the tasks. The panel has its own column, so it never covers a part of the shop. The API (`/api/tasks`) does not give the expected answers. The analysis reads them from `tasks.json`.
 
@@ -145,7 +147,7 @@ A join link lets a group of people use one link, for example in a group chat. Ea
 
 1. The first open of the session link sets the cookies and shows the task page (`/start.html`).
 2. If the person opens the link again before the end, the session continues on the home page with the same cart.
-3. The contact message after the order is the last task. The server then closes the session, and the shopping list tells that all tasks are done.
+3. The contact message is the last task. The server then closes the session, also if the person did not order. The shopping list tells that all tasks are done.
 4. For 60 s after the end, the server takes the last events of the open page. Then it refuses the events, and the logger stops.
 5. After the end, the link shows "All tasks are done" in the same browser. In a different browser, it shows "This link is not active" (status 410).
 
@@ -156,6 +158,11 @@ A join link lets a group of people use one link, for example in a group chat. Ea
 - The logger records only study sessions: the session link sets the cookie `ps_visit=1`. Other visitors send no events.
 - The listeners are passive. They never stop or change an event, so the page works the same with the logger.
 - The logger sends the events in batches to `POST /api/events`: every 2 s, at 100 events and at the end of each page (`sendBeacon`).
+- If a request fails or takes more than 15 s, the logger sends the same events again. It does not use `keepalive` for these requests.
+- The unconfirmed events stay in `sessionStorage`. If a page closes before they arrive, the next page of the tab sends them.
+- The server keeps each event once: it ignores an event with a `page` and a `seq` that it has already.
+
+The pilot session of 2026-11-28 lost about 530 of 2100 events through the tunnel, also the `captcha` events. The cause was the browser limit of 64 KB for `keepalive` requests and beacons in flight. While the network was slow, the browser refused all new requests, and the old logger did not send them again. With a test server that answered after 8 s, the old logger kept 428 of 914 events of one page. The new logger kept all 914.
 - The server accepts events only for a valid session cookie. It keeps only the known fields of each event type and drops unknown event types.
 - The server serves only HTML, CSS, JavaScript, JSON and image files. The Python files in the same folders stay private.
 - The shop, the traps and the reverse CAPTCHA record their own events through `window.psAnalytics.log(type, data)`.
@@ -186,6 +193,7 @@ Thus the logger adds about 2 µs to each pointer event and about 2 ms to a page 
 | Two tabs of one session | Each tab has its own page id |
 | A touch screen | `pointer_down` with `ptype` `touch`. Playwright has no touch screen for Firefox, and it sets `maxTouchPoints` only in Chromium. |
 | A visitor without a session link | No request to `/api/events`, no shopping list |
+| The event requests fail, also at the end of the page | The next page sends the events again. `seq` has no gaps and no event is doubled. |
 | A short network fault | The page loads the catalog again. The checkout shows an error and the second try works. |
 
 ## Traps (wad-005)

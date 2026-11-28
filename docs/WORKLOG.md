@@ -95,3 +95,13 @@
 ## 2026-11-28
 
 - Added `docs/collection.md`: the commands for a collection of human traces, from the start of the containers to the upload of the logs. Two options: a join link for a group or one link for each person.
+- Changed the tasks after a review with the team (wad-003, #23):
+  - Task 3 gives no fixed data. The person types any name, e-mail and address, and selects the delivery and the payment.
+  - Task 4 asks a question about the order. The order number is not necessary.
+  - The contact message now ends the session also without an order. Not each customer orders.
+  - `expected` keeps the answers of tasks 1 and 2 only, as an additional measure.
+- Did a pilot session with one person through the tunnel (wad-004, #24):
+  - The log had 2096 events on 11 pages. About 530 events of the checkout and the contact page were lost, also all `captcha` events.
+  - Cause: the browser limit of 64 KB for `keepalive` requests in flight. On a slow network, the browser refused all new requests.
+  - Fix: the logger sends without `keepalive`, sends a failed batch again and keeps the unconfirmed events in `sessionStorage`. The server ignores doubled events.
+  - A test with a slow server: the old logger kept 428 of 914 events, the new logger kept all 914.

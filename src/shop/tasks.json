@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "intro": "You shop for shoes in the online shop Pace & Sole. Do the four tasks in order. Use only the data in the tasks.",
+  "intro": "You shop for shoes in the online shop Pace & Sole. Do the four tasks in order.",
   "tasks": [
     {
       "id": "find-product",
@@ -15,18 +15,16 @@
     {
       "id": "checkout",
       "title": "Place the order",
-      "text": "Place the order with standard delivery. Use this data: Alex Novak, alex.novak@example.com, Lipowa 12, 80-001 Gdansk, Poland. Pay on delivery."
+      "text": "Place the order for the shoes in your cart. Use any name, e-mail and address. The data can be invented. Choose any delivery and payment."
     },
     {
       "id": "contact",
       "title": "Ask a question",
-      "text": "Use the contact form. Ask if you can return the boots after 40 days. Give the number of your order."
+      "text": "Use the contact form. Ask the shop a question about your order, for example about the delivery or a return."
     }
   ],
   "expected": {
     "find-product": {"product": "ridge-runner", "size": 43, "color": "Moss"},
-    "compare-products": {"product": "alder-trek", "size": 42},
-    "checkout": {"name": "Alex Novak", "email": "alex.novak@example.com", "street": "Lipowa 12", "postcode": "80-001", "city": "Gdansk", "country": "PL", "delivery": "standard", "payment": "cod"},
-    "contact": {"topic": "returns"}
+    "compare-products": {"product": "alder-trek", "size": 42}
   }
 }
