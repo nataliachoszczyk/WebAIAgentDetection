@@ -66,6 +66,15 @@ Check of the tunnel (2026-11-27, `cloudflared` 2026.11.2):
 - In the shop container, connections to the internet failed, `/bin/sh` did not exist and the host files were not visible.
 - The server did not answer HEAD requests (status 501). A real web server answers them, so the server now answers HEAD like GET without the body.
 
+Protocol of the tunnel (2026-11-28):
+
+- During the first collection with two people, the tunnel gave error 1033 four times in 10 minutes. One break took 35 s.
+- Cause: the network of the laptop stops for some seconds. With QUIC (UDP), the tunnel then drops its only connection and connects again.
+- A test ran two tunnels to the same shop for 10 minutes and sent one request each second through each tunnel.
+- In the test, the laptop lost the network for 8 s. Both tunnels failed during this time.
+- After the break, the HTTP/2 tunnel (TCP) worked immediately. The QUIC tunnel needed a new connection and gave 5 more errors (status 530, error 1033).
+- Thus the tunnel uses `--protocol http2`. Use a cable, not Wi-Fi, during a collection.
+
 Full check of the collection (2026-11-28):
 
 1. The containers started, and a join link for two people was made in the shop container.
