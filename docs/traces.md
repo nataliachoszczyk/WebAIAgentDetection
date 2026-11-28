@@ -2,6 +2,12 @@
 
 This file tells which sessions the study uses and how we check their logs. The commands read the data folder each time. Thus new sessions need only a new run of the same commands.
 
+## Where the data is
+
+- The private Kaggle dataset `jankombajn/wad-traces` has one zip file for each upload, for example `wad-traces-2026-11-28.zip`. The zip has the folders `shop/` (`sessions.jsonl`, `joins.jsonl`, `events/`) and `agent/` (the step logs of the agent).
+- Extract the zip into `data/`. Then `data/shop/` and `data/agent/` have the layout that the commands expect.
+- Git does not keep the data, because the human traces are personal data.
+
 ## The sessions of the study (wad-011)
 
 `src/traces.py` holds the rules. The analysis uses a session only if all these conditions are true:

@@ -146,3 +146,5 @@
   - `python -m src.traces` checks each session and writes `results/log_check.csv` and `results/session_summary.csv`.
   - 3 human and 42 agent sessions of the study have no gap, no unknown field and no late event.
   - A read by hand of one session of each model agreed with the step logs of the agent.
+- Uploaded the traces of 2026-11-28 to the private Kaggle dataset `jankombajn/wad-traces` (one zip file with `shop/` and `agent/`). See "Where the data is" in `docs/traces.md`.
+- Finished the collection of traces from agents and people (wad-030, #50). The spend of the OpenRouter key after wad-030 is 6.50 USD of 35 USD.
