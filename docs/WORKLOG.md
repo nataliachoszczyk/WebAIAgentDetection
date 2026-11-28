@@ -121,3 +121,9 @@
   - The agent uses the OpenRouter key from the course (35 USD for the full project). The Kaggle Model Proxy is the second option.
   - `src/agent/model.py` calls OpenRouter or the Kaggle Model Proxy with the same code and gives the cost of each request.
   - `claude-haiku-5.5`, `claude-sonnet-5.5` and `claude-opus-5.5` read a screenshot and called a tool with the effort `medium`.
+- Made the browser agent (wad-008, #28). See "The agent" in `docs/agent.md`:
+  - Our own agent with Playwright: the model gets the accessibility tree for AI agents and a screenshot, and uses 9 tools.
+  - Two browsers (`plain`, `hidden`) and two motions (`direct`, `human`). The `hidden` browser hides the webdriver flag and the headless mark.
+  - The history stays the same between requests, so the model API reads it from the cache.
+  - Tests with a scripted model do all four tasks without the API. 105 tests pass.
+  - Two runs of `claude-haiku-5.5` on a local shop did all four tasks for 0.015 USD each.
