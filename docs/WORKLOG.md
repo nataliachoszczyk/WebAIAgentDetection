@@ -127,3 +127,10 @@
   - The history stays the same between requests, so the model API reads it from the cache.
   - Tests with a scripted model do all four tasks without the API. 105 tests pass.
   - Two runs of `claude-haiku-5.5` on a local shop did all four tasks for 0.015 USD each.
+- Ran the agent on the public shop (wad-009, #29). See "Runs of the agent" in `docs/agent.md`:
+  - Version 2 of the agent: the history has the page after each step, and the model writes a note before its tool calls. Without them, one Sonnet run took 79 steps and 1.03 USD.
+  - A loop guard and limits stop runs that repeat themselves. `docs/agent_rules.md` gives all rules and limits for the agents.
+  - The tools accept small mistakes of models (short references, key names, extra arguments).
+  - 11 Claude runs and 13 runs of 5 small models with the `plain` browser. 28 of 29 Claude runs (with wad-010) did all four tasks. No Claude run triggered a trap.
+  - Small models triggered the hidden instructions in 5 of 13 runs.
+  - Videos of the agent sessions have the model in the file name.
