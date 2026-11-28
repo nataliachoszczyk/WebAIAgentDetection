@@ -125,6 +125,10 @@ class Browser:
             result = method(**args)
         except (PlaywrightError, TypeError, ValueError) as error:
             first = str(error).strip().splitlines()[0] if str(error).strip() else type(error).__name__
+            if "Invalid frame in aria-ref" in first:
+                return f"Error: the reference {args.get('ref')} is from an earlier page. Use the references of the last page."
+            if "options is not iterable" in first:
+                return f"Error: {args.get('ref')} is not a drop-down list."
             return f"Error: {first[:300]}"
         self.settle()
         return result or "Done."
