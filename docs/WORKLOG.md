@@ -108,3 +108,9 @@
 - Collected the first human traces through a join link and a session link: 3 new sessions, all with orders and contact messages, no gaps in `seq` (wad-011, #31).
   - The tunnel failed some times. One person opened the link 7 times, and one contact page loaded without JavaScript. Mark this session as "network fault" in wad-012.
 - Changed the tunnel to HTTP/2 (wad-001, #21). See "Protocol of the tunnel" in `docs/test_page.md`. A test of 10 minutes: after a network break of 8 s, HTTP/2 worked immediately, QUIC gave 5 more errors.
+- Did a second pilot session with the new logger (wad-004, #24). The log had 2109 events on 12 pages. No event was lost: `seq` had no gaps, each page had `page_hide`, and the three `captcha` events arrived. On one page, 119 events arrived up to 14 s late after a slow network, but they all arrived.
+- Deleted the data of the first pilot session from the laptop and from the Docker volume, because it had lost events.
+- Added the replay of a session as a video (wad-034, #65). See "Replay of a session" in `docs/test_page.md`:
+  - `src/replay.py` repeats the log in headless Chromium and writes an MP4 file with a large cursor.
+  - Two runs on the pilot session gave the same file (same MD5).
+  - New requirements: `pillow` and `imageio-ffmpeg`.

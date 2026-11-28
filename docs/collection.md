@@ -35,3 +35,8 @@ Do option A or option B. Make the links again after each start, because the addr
 4. Upload the zip file to the private Kaggle dataset. After the first collection, make this dataset from the output of a Kaggle notebook.
 
 Do not use `docker compose down -v` before step 1. The option `-v` deletes the logs.
+
+## 5. Watch the sessions
+
+1. Make one video for each session: `.venv/bin/python -m src.replay data/shop --out data/replay`
+2. Open the videos in `data/replay/`. Do not put the videos into git.
