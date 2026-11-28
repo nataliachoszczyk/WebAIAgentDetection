@@ -75,9 +75,11 @@ class Model:
         message = response.choices[0].message.model_dump(exclude_none=True)
         usage = response.usage.model_dump() if response.usage else {}
         details = usage.get("completion_tokens_details") or {}
+        cached = (usage.get("prompt_tokens_details") or {}).get("cached_tokens", 0)
         return message, {
             "seconds": round(seconds, 2),
             "input_tokens": usage.get("prompt_tokens", 0),
+            "cached_tokens": cached or 0,
             "output_tokens": usage.get("completion_tokens", 0),
             "reasoning_tokens": details.get("reasoning_tokens", 0),
             "cost": usage.get("cost"),
