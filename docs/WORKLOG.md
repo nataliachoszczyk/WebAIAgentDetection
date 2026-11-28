@@ -142,3 +142,7 @@
   - `src/traces.py` holds the rules and the list `EXCLUDED` with the reason of each exclusion. All analysis code reads the sessions from it.
   - 3 of 4 human sessions are in the study. Session `_1QnFCzrsUVW` is excluded (link preview bots and tunnel faults).
   - The aim is at least 15 people: with n people and no false alarm, the upper limit of the 95% interval of the FPR is about 3/n.
+- Checked the collected logs (wad-012, #32). See "The check of the logs" in `docs/traces.md`:
+  - `python -m src.traces` checks each session and writes `results/log_check.csv` and `results/session_summary.csv`.
+  - 3 human and 42 agent sessions of the study have no gap, no unknown field and no late event.
+  - A read by hand of one session of each model agreed with the step logs of the agent.
